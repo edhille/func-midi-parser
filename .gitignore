@@ -1,0 +1,15 @@
+# npm
+node_modules/
+
+# OSX
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# vim
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
