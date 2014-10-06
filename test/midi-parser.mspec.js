@@ -15,7 +15,7 @@ function cloneArray(array) {
 describe('midiParser', function() {
 
 	var expect = chai.expect,
-		midiData = [];
+      midiData = [];
 
 	chai.should();
 
@@ -31,7 +31,6 @@ describe('midiParser', function() {
 	describe('construction', function () {
 
 		it('should not throw an error starting with a valid Midi file', function () {
-			midiParser.parse(cloneArray(midiData));
 			expect(function () {
 				midiParser.parse(cloneArray(midiData));
 			}).not.throw(Error);

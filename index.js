@@ -21,6 +21,15 @@ var BYTE_MASK = utils.BYTE_MASK(),
 
 /* data classes */
 
+function Midi(header, tracks) {
+   this.header = header;
+   this.tracks = tracks;
+
+   if (Object.freeze) Object.freeze(this);
+}
+
+Midi.prototype = Object.create(null);
+
 function MidiHeader(params) {
    this.format = params.format;
    this.trackCount = params.trackCount;
@@ -148,8 +157,8 @@ function parseByteArrayToNumber(byteArray, isVariable) {
    var length = byteArray.length;
 
    return byteArray.reduce(function _buildNumber(number, oneByte, i) {
-      var rawByteValue = isVariable ? oneByte & HIGHBIT_MASK : oneByte;
-      var bitshiftedValue = rawByteValue << ((length-i-1) * (isVariable ? 7 : 8));
+      var rawByteValue = isVariable ? oneByte & HIGHBIT_MASK : oneByte,
+          bitshiftedValue = rawByteValue << ((length-i-1) * (isVariable ? 7 : 8));
       return number + bitshiftedValue;
    }, 0);
 }
@@ -162,49 +171,40 @@ function parseStringFromRawChars(charArray) {
 }
 
 function parseNextVariableChunk(midiBytes) {
-   function variableByteChunk(midiBytes) {
-      if (midiBytes.length === 0) return [];
+   function variableByteChunk(bytes) {
+      if (bytes.length === 0) return [];
 
-      var nByte = midiBytes.shift();
+      var nByte = bytes.shift();
 
-      if ((nByte & BYTE_MASK) === BYTE_MASK) return [nByte];
+      if ((nByte & BYTE_MASK) !== BYTE_MASK) return [nByte];
 
-      return [nByte].concat(variableByteChunk(midiBytes));
+      return [nByte].concat(variableByteChunk(bytes));
    }
 
-   return variableByteChunk(midiBytes);
+   return variableByteChunk(midiBytes.slice());
+}
+
+function matchesByteMask(testByte, byteMask) {
+   return (testByte & byteMask) === byteMask;
+}
+
+function isVariableEvent(code) {
+   return matchesByteMask(code, META_EVENT) || matchesByteMask(code, SYSEX_EVENT_MASK);
 }
 
 /* parsing */
 
 function parse(midiBytes) {
-    console.log('total bytes: ' + midiBytes.length);
-    var header = parseHeader(toArr(midiBytes, 0, 14));
-    console.dir(header);
-    var tracks = parseTracks(toArr(midiBytes, 14, midiBytes.length));
+   var headerOffset = 14,
+       // NOTE: I would like to use UInt8Array, but it's a pain to use,
+       //       so I convert it to a regular array
+       header = parseHeader(toArr(midiBytes, 0, headerOffset)),
+       tracks = parseTracks(toArr(midiBytes, headerOffset, midiBytes.length));
 
+    // TODO: test this error case (need a malformed midi file)
     if (tracks.length !== header.trackCount) throw new Error('Parsed wrong number of tracks: expected (' + header.trackCount + '), but got (' + tracks.length + ')');
 
-    var midi = {
-       header: header,
-       tracks: tracks
-    };
-
-    if (Object.freeze) Object.freeze(midi);
-
-    return midi;
-}
-
-function parseChunk(midiBytes, parser) {
-   var chunkId = parseStringFromRawChars(midiBytes.slice(0, 4));
-
-   if (chunkId !== 'MThd' && chunkId !== 'MTrk') {
-      throw new Error('Invalid header chunkId "' + chunkId + '"');
-   }
-
-   var size = parseByteArrayToNumber(midiBytes.getBytes(4, 8));
-
-   var track = parser(midiBytes.slice(8, 8 + size));
+    return new Midi(header, tracks);
 }
 
 function parseHeader(midiBytes) {
@@ -230,21 +230,21 @@ function parseHeader(midiBytes) {
 function parseTracks(midiBytes) {
    if (midiBytes.length === 0) return [];
 
-   var chunkIdBytes = midiBytes.slice(0, 4),
+   var chunkIdOffset = 4,
+       chunkIdBytes = midiBytes.slice(0, chunkIdOffset),
        chunkId = parseStringFromRawChars(chunkIdBytes);
 
+   // TODO: test this (need invalid midi file)
    if (chunkId !== 'MTrk') throw new Error('Invalid header chunkId "' + chunkId + '"');
 
-   var trackSizeBytes = midiBytes.slice(4, 8),
+   var trackSizeOffset = chunkIdOffset + 4,
+       trackSizeBytes = midiBytes.slice(chunkIdOffset, trackSizeOffset),
        trackSize = parseByteArrayToNumber(trackSizeBytes),
-       eventBytes = midiBytes.slice(8, 8 + trackSize),
-       events = parseEvents(eventBytes);
+       eventsOffset = trackSizeOffset + trackSize,
+       eventsBytes = midiBytes.slice(trackSizeOffset, eventsOffset),
+       events = parseEvents(eventsBytes);
 
-   return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(8 + trackSize)));
-}
-
-function matchesByteMask(testByte, byteMask) {
-   return (testByte & byteMask) === byteMask;
+   return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(eventsOffset)));
 }
 
 function isValidEventCode(code) {
@@ -253,29 +253,40 @@ function isValidEventCode(code) {
    if (matchesByteMask(code, NOTE_OFF_MASK)) return true;
    if (matchesByteMask(code, SYSEX_EVENT_MASK)) return true;
 
+   if (code) {
+      console.log('Invalid code', '0x' + code.toString(16));
+   } else {
+      console.log('NO CODE');
+      throw('oh shit...');
+   }
+
    return false;
 }
 
 function parseEvents(midiBytes, lastEventType) {
    if (midiBytes.length === 0) return [];
 
+   console.log('parseEvents', midiBytes.length, lastEventType);
+
    var deltaBytes = parseNextVariableChunk(midiBytes),
        deltaTime = parseByteArrayToNumber(deltaBytes, true),
+       foo = console.log(deltaBytes, deltaTime),
        eventBytes = midiBytes.slice(deltaBytes.length),
        eventCode = eventBytes.shift();
 
    if (!isValidEventCode(eventCode)) {
+      // TODO: test this edge case (need malformed midi file)
+      if (!lastEventType) throw new Error('no previous event type to use');
+
       eventBytes.unshift(eventCode);
       eventCode = lastEventType;
    }
 
+   // TODO: actually have to pull out the correct number of bytes here and then pass that to a parser
+   //       (otherwise, we're not really taking the correct number of bytes....)
    var midiEvent = isVariableEvent(eventCode) ? parseVariableEvent(eventCode, eventBytes) : parseSimpleEvent(eventCode, eventBytes);
 
    return [midiEvent].concat(parseEvents(eventBytes, eventCode));
-}
-
-function isVariableEvent(code) {
-   return matchesByteMask(code, META_EVENT) || matchesByteMask(code, SYSEX_EVENT_MASK);
 }
 
 function parseVariableEvent(eventCode, eventBytes) {
@@ -298,4 +309,5 @@ function parseSimpleEvent(eventCode, eventBytes) {
 
 module.exports = {
     parse: parse
+    // TODO: should we export more functionality?
 };
