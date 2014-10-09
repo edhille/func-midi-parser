@@ -5,8 +5,8 @@
 var utils = require('./lib/utils.js'),
     curry = utils.curry,
     splice = utils.splice,
-    existy = utils.existy,
-    reduce = utils.reduce;
+    partial = utils.partial,
+    dispatch = utils.dispatch;
 
 var BYTE_MASK = utils.BYTE_MASK(),
     HIGHBIT_MASK = utils.HIGHBIT_MASK(),
@@ -63,17 +63,18 @@ MidiEvent.prototype = Object.create(null);
 function MidiMetaEvent(params) {
    this.subtype = params.subtype || 'unknown';
 
-   MidiEvent.call(params);
+   MidiEvent.call(this, params);
 }
 
 MidiMetaEvent.prototype = Object.create(MidiEvent);
 
 function MidiMetaTempoEvent(params) {
-   this.tempo = parseByteArrayToNumber(params.data.bytes);
+   console.log('PARAMS: ', params);
+   this.tempo = parseByteArrayToNumber(params.dataBytes);
 
    params.subtype = 'tempo';
 
-   MidiMetaEvent.call(params);
+   MidiMetaEvent.call(this, params);
 }
 
 MidiMetaTempoEvent.prototype = Object.create(MidiMetaEvent);
@@ -90,7 +91,7 @@ function MidiMetaTimeSignatureEvent(params) {
 
    params.subtype = 'time_signature';
 
-   MidiMetaEvent.call(params);
+   MidiMetaEvent.call(this, params);
 }
 
 MidiMetaTimeSignatureEvent.prototype = Object.create(MidiMetaEvent);
@@ -100,7 +101,7 @@ function MidiMetaInstrumentNameEvent(params) {
 
    params.subtype = 'instrument_name';
 
-   MidiMetaEvent.call(params);
+   MidiMetaEvent.call(this, params);
 }
 
 MidiMetaInstrumentNameEvent.prototype = Object.create(MidiMetaEvent);
@@ -108,7 +109,7 @@ MidiMetaInstrumentNameEvent.prototype = Object.create(MidiMetaEvent);
 function MidiMetaEndOfTrackEvent(params) {
    params.subtype = 'end';
 
-   MidiMetaEvent.call(params);
+   MidiMetaEvent.call(this, params);
 }
 
 MidiMetaEndOfTrackEvent.prototype = Object.create(MidiMetaEvent);
@@ -116,7 +117,7 @@ MidiMetaEndOfTrackEvent.prototype = Object.create(MidiMetaEvent);
 function MidiSystemEvent(params) {
    params.type = 'system';
 
-   MidiEvent.call(params);
+   MidiEvent.call(this, params);
 }
 
 MidiSystemEvent.prototype = Object.create(MidiEvent);
@@ -124,7 +125,10 @@ MidiSystemEvent.prototype = Object.create(MidiEvent);
 function MidiNoteEvent(params) {
    params.type = 'note';
 
-   MidiEvent.call(params);
+   this.note = params.note;
+   this.velocity = params.velocity;
+   
+   MidiEvent.call(this, params);
 }
 
 MidiNoteEvent.prototype = Object.create(MidiEvent);
@@ -133,7 +137,7 @@ function MidiNoteOnEvent(params) {
    params.type = 'note';
    params.subtype = 'on';
 
-   MidiNoteEvent.call(params);
+   MidiNoteEvent.call(this, params);
 }
 
 MidiNoteOnEvent.prototype = Object.create(MidiNoteEvent);
@@ -142,12 +146,21 @@ function MidiNoteOffEvent(params) {
    params.type = 'note';
    params.subtype = 'off';
 
-   MidiNoteEvent.call(params);
+   MidiNoteEvent.call(this, params);
 }
 
 MidiNoteOffEvent.prototype = Object.create(MidiNoteEvent);
 
 /* utilities */
+
+function toHex(item) {
+   if (item instanceof Array) {
+      return item.map(function (b) { return b.toString(16); });
+   } else {
+      return item.toString(16);
+   }
+   
+}
 
 function toArr(dataView, start, end) {
    return Array.apply([], dataView.subarray(start, end));
@@ -184,12 +197,115 @@ function parseNextVariableChunk(midiBytes) {
    return variableByteChunk(midiBytes.slice());
 }
 
-function matchesByteMask(testByte, byteMask) {
+function matchesByteMask(byteMask, testByte) {
    return (testByte & byteMask) === byteMask;
 }
 
 function isVariableEvent(code) {
-   return matchesByteMask(code, META_EVENT) || matchesByteMask(code, SYSEX_EVENT_MASK);
+   return isMetaEvent(code) || isSysexEvent(code);
+}
+
+function isMetaEvent(code) {
+   return matchesByteMask(META_EVENT, code);
+}
+
+function isSysexEvent(code) {
+   return matchesByteMask(SYSEX_EVENT_MASK, code);
+}
+
+function isNoteEvent(code) {
+   return matchesByteMask(NOTE_ON_MASK, code) || matchesByteMask(NOTE_OFF_MASK, code);
+}
+
+function isValidEventCode(code) {
+   if (isMetaEvent(code)) return true;
+   if (isNoteEvent(code)) return true;
+   if (isSysexEvent(code)) return true;
+
+   if (code) {
+      console.log('Invalid code', '0x' + code.toString(16));
+   } else {
+      console.log('NO CODE');
+      throw('oh shit...');
+   }
+
+   return false;
+}
+
+var generateMatchMask = curry(function _matchMask(bitMask) {
+   return function _matchTestByte(testByte) {
+      return (testByte & bitMask) === bitMask;
+   };
+});
+
+var generateEventGuard = partial(function _generateEventGuard(metaEventSubtype, metaEventProcessor) {
+   var matchMask = generateMatchMask(metaEventSubtype);
+
+   return function _testEvent(eventCode, subtype, deltaTime, dataBytes) {
+      if (!matchMask(eventCode)) return;
+
+      return metaEventProcessor.call(null, eventCode, subtype, deltaTime, dataBytes);
+   };
+});
+
+var processMetaEvent = dispatch(
+   // generateEventGuard(0x00, processSequenceNumber),
+   // generateEventGuard(0x20, processMidiChannelPrefixAssignment),
+   // generateEventGuard(0x01, processTextEvent),
+   // generateEventGuard(0x2F, processEndOfTrack),
+   // generateEventGuard(0x02, processCopyrightNotice),
+   generateEventGuard(0x51, processTempo),
+   // generateEventGuard(0x03, processTrackName),
+   // generateEventGuard(0x54, processSmpteOffset),
+   // generateEventGuard(0x04, processInstrumentName),
+   // generateEventGuard(0x58, processTimeSignature),
+   // generateEventGuard(0x05, processLyricText),
+   // generateEventGuard(0x59, processKeySignature),
+   // generateEventGuard(0x06, processMarkerText),
+   // generateEventGuard(0x7F, processSequencerSpecificEvent),
+   // generateEventGuard(0x07, processCuePoint),
+   function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown meta event "' + subtype + '"'); }
+);
+
+function processTempo(eventCode, subtype, deltaTime, dataBytes) {
+   return new MidiMetaTempoEvent({
+      code: eventCode,
+      subtype: subtype,
+      delta: deltaTime,
+      dataBytes: dataBytes
+   });
+}
+
+var processNoteEvent = dispatch(
+   generateEventGuard(NOTE_ON_MASK, processNoteOn),
+   generateEventGuard(NOTE_OFF_MASK, processNoteOff),
+   function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown note event "' + subtype + '"'); }
+);
+
+function processNoteOn(eventCode, subtype, deltaTime, dataBytes) {
+   var noteNumber = dataBytes[0],
+       noteVelocity = dataBytes[1];
+
+   return new MidiNoteOnEvent({
+      code: eventCode,
+      subtype: subtype,
+      delta: deltaTime,
+      note: noteNumber,
+      velocity: noteVelocity
+   });
+}
+
+function processNoteOff(eventCode, subtype, deltaTime, dataBytes) {
+   var noteNumber = dataBytes[0],
+       noteVelocity = dataBytes[1];
+
+   return new MidiNoteOffEvent({
+      code: eventCode,
+      subtype: subtype,
+      delta: deltaTime,
+      note: noteNumber,
+      velocity: noteVelocity
+   });
 }
 
 /* parsing */
@@ -247,22 +363,6 @@ function parseTracks(midiBytes) {
    return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(eventsOffset)));
 }
 
-function isValidEventCode(code) {
-   if (matchesByteMask(code, META_EVENT)) return true;
-   if (matchesByteMask(code, NOTE_ON_MASK)) return true;
-   if (matchesByteMask(code, NOTE_OFF_MASK)) return true;
-   if (matchesByteMask(code, SYSEX_EVENT_MASK)) return true;
-
-   if (code) {
-      console.log('Invalid code', '0x' + code.toString(16));
-   } else {
-      console.log('NO CODE');
-      throw('oh shit...');
-   }
-
-   return false;
-}
-
 function parseEvents(midiBytes, lastEventType) {
    if (midiBytes.length === 0) return [];
 
@@ -270,9 +370,11 @@ function parseEvents(midiBytes, lastEventType) {
 
    var deltaBytes = parseNextVariableChunk(midiBytes),
        deltaTime = parseByteArrayToNumber(deltaBytes, true),
-       foo = console.log(deltaBytes, deltaTime),
+       foo = console.log('deltaBytes:', toHex(deltaBytes), 'deltaTime:', toHex(deltaTime)),
        eventBytes = midiBytes.slice(deltaBytes.length),
        eventCode = eventBytes.shift();
+
+   console.log('eventCode:', toHex(eventCode), 'eventBytes:', toHex(eventBytes));
 
    if (!isValidEventCode(eventCode)) {
       // TODO: test this edge case (need malformed midi file)
@@ -282,29 +384,37 @@ function parseEvents(midiBytes, lastEventType) {
       eventCode = lastEventType;
    }
 
-   // TODO: actually have to pull out the correct number of bytes here and then pass that to a parser
-   //       (otherwise, we're not really taking the correct number of bytes....)
-   var midiEvent = isVariableEvent(eventCode) ? parseVariableEvent(eventCode, eventBytes) : parseSimpleEvent(eventCode, eventBytes);
+   var midiEvent = {},
+       subtype = null,
+       sizeBytes = [],
+       size = 0,
+       dataBytes = [];
+
+   if (isMetaEvent(eventCode)) {
+      subtype = eventBytes.shift();
+      sizeBytes = parseNextVariableChunk(eventBytes);
+      size = parseByteArrayToNumber(sizeBytes, true);
+      dataBytes = eventBytes.slice(sizeBytes.length, sizeBytes.length + size);
+
+      midiEvent = processMetaEvent(eventCode, subtype, deltaTime, dataBytes);
+
+      // TODO: this is not exactly how I'd like to do this...
+      eventBytes = eventBytes.slice(sizeBytes.length + size);
+   } else if (isSysexEvent(eventCode)) {
+      throw new Error('TODO: sysex event processing...');
+   } else if (isNoteEvent(eventCode)) {
+      subtype = eventBytes.shift();
+      dataBytes = eventBytes.slice(0, 2);
+
+      midiEvent = processNoteEvent(eventCode, subtype, deltaTime, dataBytes);
+
+      // TODO: again, not exactly how I'd like to adjust the eventBytes array
+      eventBytes = eventBytes.slice(2);
+   } else {
+      throw new Error('unknown event code "' + toHex(eventCode) + '"');
+   }
 
    return [midiEvent].concat(parseEvents(eventBytes, eventCode));
-}
-
-function parseVariableEvent(eventCode, eventBytes) {
-   if (eventBytes.length === 0) throw new Error('no event bytes');
-
-   var sizeBytes = parseNextVariableChunk(eventBytes),
-       size = parseByteArrayToNumber(sizeBytes, true),
-       dataBytes = eventBytes.slice(sizeBytes.length, sizeBytes.length + size);
-
-   return { code: eventCode };
-}
-
-function parseSimpleEvent(eventCode, eventBytes) {
-   if (eventBytes.length === 0) throw new Error('no event bytes');
-
-   eventBytes.shift();
-
-   return { code: eventCode };
 }
 
 module.exports = {
