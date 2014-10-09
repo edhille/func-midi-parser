@@ -224,9 +224,6 @@ function isValidEventCode(code) {
 
    if (code) {
       console.log('Invalid code', '0x' + code.toString(16));
-   } else {
-      console.log('NO CODE');
-      throw('oh shit...');
    }
 
    return false;
