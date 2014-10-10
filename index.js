@@ -69,7 +69,6 @@ function MidiMetaEvent(params) {
 MidiMetaEvent.prototype = Object.create(MidiEvent);
 
 function MidiMetaTempoEvent(params) {
-   console.log('PARAMS: ', params);
    this.tempo = parseByteArrayToNumber(params.dataBytes);
 
    params.subtype = 'tempo';
@@ -197,38 +196,6 @@ function parseNextVariableChunk(midiBytes) {
    return variableByteChunk(midiBytes.slice());
 }
 
-function matchesByteMask(byteMask, testByte) {
-   return (testByte & byteMask) === byteMask;
-}
-
-function isVariableEvent(code) {
-   return isMetaEvent(code) || isSysexEvent(code);
-}
-
-function isMetaEvent(code) {
-   return matchesByteMask(META_EVENT, code);
-}
-
-function isSysexEvent(code) {
-   return matchesByteMask(SYSEX_EVENT_MASK, code);
-}
-
-function isNoteEvent(code) {
-   return matchesByteMask(NOTE_ON_MASK, code) || matchesByteMask(NOTE_OFF_MASK, code);
-}
-
-function isValidEventCode(code) {
-   if (isMetaEvent(code)) return true;
-   if (isNoteEvent(code)) return true;
-   if (isSysexEvent(code)) return true;
-
-   if (code) {
-      console.log('Invalid code', '0x' + code.toString(16));
-   }
-
-   return false;
-}
-
 var generateMatchMask = curry(function _matchMask(bitMask) {
    return function _matchTestByte(testByte) {
       return (testByte & bitMask) === bitMask;
@@ -237,102 +204,92 @@ var generateMatchMask = curry(function _matchMask(bitMask) {
 
 var generateMatcher = curry(function _matcher(code) {
    return function _matchCode(testCode) {
-      console.log('MATCH:', toHex(code), 'TEST:', toHex(testCode));
       return testCode === code;
    };
 });
 
-var generateEventGuard = partial(function _generateEventGuard(metaEventSubtype, metaEventProcessor) {
+var isMetaEvent = generateMatcher(META_EVENT);
+var isSysexEvent = generateMatchMask(SYSEX_EVENT_MASK);
+var isNoteOnEvent = generateMatchMask(NOTE_ON_MASK);
+var isNoteOffEvent = generateMatchMask(NOTE_OFF_MASK);
+
+function isVariableEvent(code) {
+   return isMetaEvent(code) || isSysexEvent(code);
+}
+
+function isNoteEvent(code) {
+   return isNoteOnEvent(code) || isNoteOffEvent(code);
+}
+
+function isValidEventCode(code) {
+   if (isMetaEvent(code)) return true;
+   if (isNoteEvent(code)) return true;
+   if (isSysexEvent(code)) return true;
+
+   return false;
+}
+
+var generateMetaEventGuard = partial(function _generateEventGuard(metaEventSubtype, processEvent) {
    var eventMatches = generateMatcher(metaEventSubtype);
 
    return function _testEvent(eventCode, subtype, deltaTime, dataBytes) {
-      console.log('metaEventSubtype:', toHex(metaEventSubtype), 'subtype:', toHex(subtype));
-
       if (!eventMatches(subtype)) return;
 
-      return metaEventProcessor.call(null, eventCode, subtype, deltaTime, dataBytes);
+      return processEvent.apply(null, arguments);
    };
 });
 
+function generateEvent(MetaEventClass, eventCode, subtype, deltaTime, dataBytes) {
+   return new MetaEventClass({
+      code: eventCode,
+      subtype: subtype,
+      delta: deltaTime,
+      dataBytes: dataBytes
+   });
+}
+
 var processMetaEvent = dispatch(
+   generateMetaEventGuard(0x2F, partial(generateEvent, MidiMetaEndOfTrackEvent)),
+   generateMetaEventGuard(0x51, partial(generateEvent, MidiMetaTempoEvent)),
+   generateMetaEventGuard(0x58, partial(generateEvent, MidiMetaTimeSignatureEvent)),
+   generateMetaEventGuard(0x04, partial(generateEvent, MidiMetaInstrumentNameEvent)),
    // generateEventGuard(0x00, processSequenceNumber),
    // generateEventGuard(0x20, processMidiChannelPrefixAssignment),
    // generateEventGuard(0x01, processTextEvent),
-   generateEventGuard(0x2F, processEndOfTrack),
    // generateEventGuard(0x02, processCopyrightNotice),
-   generateEventGuard(0x51, processTempo),
-   generateEventGuard(0x58, processTimeSignature),
    // generateEventGuard(0x03, processTrackName),
    // generateEventGuard(0x54, processSmpteOffset),
-   generateEventGuard(0x04, processInstrumentName),
    // generateEventGuard(0x05, processLyricText),
    // generateEventGuard(0x59, processKeySignature),
    // generateEventGuard(0x06, processMarkerText),
    // generateEventGuard(0x7F, processSequencerSpecificEvent),
    // generateEventGuard(0x07, processCuePoint),
+   // TODO: should we throw an exception?
    function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown meta event "' + toHex(subtype) + '"'); }
 );
 
-function processEndOfTrack(eventCode, subtype, deltaTime, dataBytes) {
-   return new MidiMetaEndOfTrackEvent({
-      code: eventCode,
-      subtype: subtype,
-      delta: deltaTime
-   });
-}
+var generateNoteEventGuard = partial(function _generateNoteEventGuard(noteEventMask, processEvent) {
+   var eventMatches = generateMatchMask(noteEventMask);
 
-function processTempo(eventCode, subtype, deltaTime, dataBytes) {
-   console.log('eventCode:', toHex(eventCode), 'subtype:', toHex(subtype), 'deltaTime:', toHex(deltaTime), 'dataBytes:', toHex(dataBytes));
-   return new MidiMetaTempoEvent({
-      code: eventCode,
-      subtype: subtype,
-      delta: deltaTime,
-      dataBytes: dataBytes
-   });
-}
+   return function _testEvent(eventCode, subtype, deltaTime, dataBytes) {
+      if (!eventMatches(eventCode)) return;
 
-function processTimeSignature(eventCode, subtype, deltaTime, dataBytes) {
-   return new MidiMetaTimeSignatureEvent({
-      code: eventCode,
-      subtype: subtype,
-      delta: deltaTime,
-      dataBytes: dataBytes
-   });
-}
-
-function processInstrumentName(eventCode, subtype, deltaTime, dataBytes) {
-   return new MidiMetaInstrumentNameEvent({
-      code: eventCode,
-      subtype: subtype,
-      delta: deltaTime,
-      dataBytes: dataBytes
-   });
-}
+      return processEvent.apply(null, arguments);
+   };
+});
 
 var processNoteEvent = dispatch(
-   generateEventGuard(NOTE_ON_MASK, processNoteOn),
-   generateEventGuard(NOTE_OFF_MASK, processNoteOff),
-   function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown note event "' + subtype + '"'); }
+   generateNoteEventGuard(NOTE_ON_MASK, partial(generateNote, MidiNoteOnEvent)),
+   generateNoteEventGuard(NOTE_OFF_MASK, partial(generateNote, MidiNoteOffEvent)),
+   // TODO: should an exception be thrown?
+   function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown note event "' + toHex(subtype) + '"'); }
 );
 
-function processNoteOn(eventCode, subtype, deltaTime, dataBytes) {
+function generateNote(NoteClass, eventCode, subtype, deltaTime, dataBytes) {
    var noteNumber = dataBytes[0],
        noteVelocity = dataBytes[1];
 
-   return new MidiNoteOnEvent({
-      code: eventCode,
-      subtype: subtype,
-      delta: deltaTime,
-      note: noteNumber,
-      velocity: noteVelocity
-   });
-}
-
-function processNoteOff(eventCode, subtype, deltaTime, dataBytes) {
-   var noteNumber = dataBytes[0],
-       noteVelocity = dataBytes[1];
-
-   return new MidiNoteOffEvent({
+   return new NoteClass({
       code: eventCode,
       subtype: subtype,
       delta: deltaTime,
@@ -399,15 +356,10 @@ function parseTracks(midiBytes) {
 function parseEvents(midiBytes, lastEventType) {
    if (midiBytes.length === 0) return [];
 
-   // console.log('parseEvents', midiBytes.length, lastEventType);
-
    var deltaBytes = parseNextVariableChunk(midiBytes),
        deltaTime = parseByteArrayToNumber(deltaBytes, true),
-       // foo = console.log('deltaBytes:', toHex(deltaBytes), 'deltaTime:', toHex(deltaTime)),
        eventBytes = midiBytes.slice(deltaBytes.length),
        eventCode = eventBytes.shift();
-
-   // console.log('eventCode:', toHex(eventCode), 'eventBytes:', toHex(eventBytes));
 
    if (!isValidEventCode(eventCode)) {
       // TODO: test this edge case (need malformed midi file)
