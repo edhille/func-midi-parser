@@ -16,7 +16,7 @@ var midiUtils = require('./lib/midi-utils.js'),
     parseByteArrayToNumber = midiUtils.parseByteArrayToNumber,
     parseNextVariableChunk = midiUtils.parseNextVariableChunk,
     generateMatcher = midiUtils.generateMatcher,
-    generateMatchMask = midiUtils.generateMatchMask,
+    generateMaskMatcher = midiUtils.generateMaskMatcher,
     isValidEventCode = midiUtils.isValidEventCode,
     isMetaEvent = midiUtils.isMetaEvent,
     isSysexEvent = midiUtils.isSysexEvent,
@@ -51,9 +51,7 @@ var generateMetaEventGuard = partial(function _generateEventGuard(metaEventSubty
    var eventMatches = generateMatcher(metaEventSubtype);
 
    return function _testEvent(eventCode, subtype, deltaTime, dataBytes) {
-      if (!eventMatches(subtype)) return;
-
-      return processEvent.apply(null, arguments);
+      if (eventMatches(subtype)) return processEvent.apply(null, arguments);
    };
 });
 
@@ -87,12 +85,10 @@ var processMetaEvent = dispatch(
 );
 
 var generateNoteEventGuard = partial(function _generateNoteEventGuard(noteEventMask, processEvent) {
-   var eventMatches = generateMatchMask(noteEventMask);
+   var eventMatches = generateMaskMatcher(noteEventMask);
 
    return function _testEvent(eventCode, subtype, deltaTime, dataBytes) {
-      if (!eventMatches(eventCode)) return;
-
-      return processEvent.apply(null, arguments);
+      if (eventMatches(eventCode)) return processEvent.apply(null, arguments);
    };
 });
 
@@ -103,13 +99,12 @@ var processNoteEvent = dispatch(
    function _noMatch(eventCode, subtype, deltaTime, dataBytes) { throw new Error('unknown note event "' + toHex(subtype) + '"'); }
 );
 
-function generateNote(NoteClass, eventCode, subtype, deltaTime, dataBytes) {
+function generateNote(NoteClass, eventCode, deltaTime, dataBytes) {
    var noteNumber = dataBytes[0],
        noteVelocity = dataBytes[1];
 
    return new NoteClass({
       code: eventCode,
-      subtype: subtype,
       delta: deltaTime,
       note: noteNumber,
       velocity: noteVelocity
@@ -181,7 +176,7 @@ function parseEvents(midiBytes, lastEventType) {
 
    if (!isValidEventCode(eventCode)) {
       // TODO: test this edge case (need malformed midi file)
-      if (!lastEventType) throw new Error('no previous event type to use');
+      if (!lastEventType) throw new TypeError('no previous event type to use');
 
       eventBytes.unshift(eventCode);
       eventCode = lastEventType;
@@ -206,21 +201,43 @@ function parseEvents(midiBytes, lastEventType) {
    } else if (isSysexEvent(eventCode)) {
       throw new Error('TODO: sysex event processing...');
    } else if (isNoteEvent(eventCode)) {
-      subtype = eventBytes.shift();
       dataBytes = eventBytes.slice(0, 2);
 
-      midiEvent = processNoteEvent(eventCode, subtype, deltaTime, dataBytes);
+      midiEvent = processNoteEvent(eventCode, deltaTime, dataBytes);
 
       // TODO: again, not exactly how I'd like to adjust the eventBytes array
       eventBytes = eventBytes.slice(2);
+
+      // TODO: this does not seem ideal, but we need to track note length
+      if (midiEvent instanceof MidiNoteOnEvent) {
+         var laterEvents = parseEvents(eventBytes, eventCode);
+         var endNoteFound = false;
+         var noteLength = laterEvents.reduce(function (sum, event) {
+            if (endNoteFound) return sum;
+            if (event.note === midiEvent.note && event instanceof MidiNoteOffEvent) endNoteFound = true;
+            return sum + event.delta;
+         }, 0);
+
+         midiEvent = new MidiNoteOnEvent({
+            code: midiEvent.code,
+            subtype: midiEvent.subtype,
+            note: midiEvent.note,
+            velocity: midiEvent.velocity,
+            delta: midiEvent.delta,
+            length: noteLength
+         });
+
+         return [midiEvent].concat(laterEvents);
+      }
    } else {
-      throw new Error('unknown event code "' + toHex(eventCode) + '"');
+      throw new TypeError('unknown event code "' + toHex(eventCode) + '"');
    }
 
    return [midiEvent].concat(parseEvents(eventBytes, eventCode));
 }
 
 module.exports = {
-    parse: parse
-    // TODO: should we export more functionality?
+    parse: parse,
+    types: types,
+    constants: constants
 };

@@ -4,7 +4,9 @@
 'use strict';
 
 var chai = require('chai'),
-    midiUtils = require('../lib/midi-utils.js');
+    midiUtils = require('../lib/midi-utils.js'),
+    constants = require('../lib/midi-constants.js'),
+    NOTE_ON_MASK = constants.NOTE_ON_MASK;
 
 describe('midi utilities', function () {
 
@@ -47,7 +49,22 @@ describe('midi utilities', function () {
         });
     });
 
-    describe('#method', function () {
+    describe('#generateMaskMatcher', function () {
+       var generateMaskMatcher = midiUtils.generateMaskMatcher,
+           matcher = function () {},
+           testMask = NOTE_ON_MASK;
 
+       beforeEach(function () {
+          matcher = generateMaskMatcher(NOTE_ON_MASK);
+       });
+
+       it('should match an event that bitwise ands with the mask', function () {
+          // 0x91 is a "Chan 2 Note on" event
+          matcher(0x91).should.be.true;
+       });
+
+       it('should match not an event that does not bitwise and with the mask', function () {
+          matcher(0x51).should.be.false;
+       });
     });
 });

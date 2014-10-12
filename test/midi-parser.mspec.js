@@ -5,7 +5,10 @@
 
 var fs = require('fs'),
     chai = require('chai'),
-    midiParser = require('../index.js');
+    midiParser = require('../index.js'),
+    types = midiParser.types,
+    MidiNoteOnEvent = types.MidiNoteOnEvent,
+    MidiNoteOffEvent = types.MidiNoteOffEvent;
 
 function cloneArray(array) {
    return array.subarray(0, array.length);
@@ -97,7 +100,7 @@ describe('midiParser', function() {
 				describe('Instrument', function () {
 
 					beforeEach(function () {
-						midiTrack = midi.tracks[1];
+						midiTrack = midi.tracks[1]; // bass-drum, half-note track
 					});
 
 					afterEach(function () {
@@ -120,21 +123,37 @@ describe('midiParser', function() {
 						});
 
 						it('should have thirty-four events', function() {
+                     // 1 instrument-name
+                     // 16 note-on
+                     // 16 note-off
+                     // 1 end-of-track
 							events.length.should.equal(34);
 						});
 
 						it('should have equal number of on/off events', function () {
-							var noteOnFilter = function (event) { return event.type === 'note' && event.subtype === 'on'; },
-								noteOffFilter = function (event) { return event.type === 'note' && event.subtype === 'off'; };
+							var noteOnFilter = function (event) { return event instanceof MidiNoteOnEvent; },
+								noteOffFilter = function (event) { return event instanceof MidiNoteOffEvent; };
 
 							events.filter(noteOnFilter).length.should.equal(events.filter(noteOffFilter).length);
 						});
 
                   it('should track the length of a note', function () {
-                     var onNotes = events.filter(function (event) { return event.type === 'note' && event.subtype === 'on'; });
+                     var onNotes = events.filter(function (event) { return event instanceof MidiNoteOnEvent; });
 
                      onNotes.forEach(function (event) {
-                        event.length.should.equal(250000);
+                        // NOTE: if song is 60bpm, that corresponds to
+                        //          - tempo = 1,000,000
+                        //          - timeDivision = 96
+                        //          - noteLength (in midi ticks) = 48
+                        //
+                        //       60,000,000 / 1,000,000 = 60 (quarter notes per minute, aka 60bpm)
+                        //       1,000,000 / 96 = 10,416.6667 (microseconds per tick)
+                        //       10,416.6667 * 24 = 250,000 (microseconds between note start)
+                        //       250,000 / 1,000 = 250 (milliseconds between previous note start)
+                        //
+                        //       250ms is length of 16th note when tempo is 60bpm
+                        
+                        event.length.should.equal(24);
                      });
                   });
 
