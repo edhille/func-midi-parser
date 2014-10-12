@@ -5,7 +5,6 @@
 
 var fs = require('fs'),
     chai = require('chai'),
-    utils = require('../lib/utils.js'),
     midiParser = require('../index.js');
 
 function cloneArray(array) {
@@ -106,7 +105,7 @@ describe('midiParser', function() {
 					});
 
 					it('should have an instrument name');//, function () {
-					// 	midiTrack.instrumentName.should.equal('01');
+					// midiTrack.instrumentName.should.equal('01');
 					// });
 
 					describe('Events', function () {

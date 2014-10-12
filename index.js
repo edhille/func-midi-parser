@@ -2,199 +2,44 @@
 /* jshint node: true, expr: true, es5: true */
 'use strict';
 
-var utils = require('./lib/utils.js'),
+var utils = require('./lib/funtils.js'),
     curry = utils.curry,
     splice = utils.splice,
     partial = utils.partial,
     dispatch = utils.dispatch;
 
-var BYTE_MASK = utils.BYTE_MASK(),
-    HIGHBIT_MASK = utils.HIGHBIT_MASK(),
-    META_EVENT = utils.META_EVENT(),
-    SYSEX_EVENT_MASK = utils.SYSEX_EVENT_MASK(),
-    NOTE_ON_MASK = utils.NOTE_ON_MASK(),
-    NOTE_OFF_MASK = utils.NOTE_OFF_MASK(),
-    TEMPO_META_EVENT = utils.TEMPO_META_EVENT(),
-    TIME_SIG_META_EVENT = utils.TIME_SIG_META_EVENT(),
-    INST_NAME_META_EVENT = utils.INST_NAME_META_EVENT(),
-    END_OF_TRACK_META_EVENT = utils.END_OF_TRACK_META_EVENT();
+var midiUtils = require('./lib/midi-utils.js'),
+    toHex = midiUtils.toHex,
+    toArr = midiUtils.toArr,
+    parseVariableBytesToNumber = midiUtils.parseVariableBytesToNumber,
+    parseStringFromRawChars = midiUtils.parseStringFromRawChars,
+    parseByteArrayToNumber = midiUtils.parseByteArrayToNumber,
+    parseNextVariableChunk = midiUtils.parseNextVariableChunk;
 
-/* data classes */
+var types = require('./lib/data-types.js'),
+    Midi = types.Midi,
+    MidiHeader = types.MidiHeader,
+    MidiTrack = types.MidiTrack,
+    MidiNoteOnEvent = types.MidiNoteOnEvent,
+    MidiNoteOffEvent = types.MidiNoteOffEvent,
+    MidiMetaTempoEvent = types.MidiMetaTempoEvent,
+    MidiMetaTimeSignatureEvent = types.MidiMetaTimeSignatureEvent,
+    MidiMetaInstrumentNameEvent = types.MidiMetaInstrumentNameEvent,
+    MidiMetaEndOfTrackEvent = types.MidiMetaEndOfTrackEvent;
 
-function Midi(header, tracks) {
-   this.header = header;
-   this.tracks = tracks;
-
-   if (Object.freeze) Object.freeze(this);
-}
-
-Midi.prototype = Object.create(null);
-
-function MidiHeader(params) {
-   this.format = params.format;
-   this.trackCount = params.trackCount;
-   this.timeDivision = params.timeDivision;
-   this.isTicksPerBeat = Boolean(0x8000 & this.timeDivision);
-   this.isFramesPerSecond = !this.isTicksPerBeat;
-   
-   if (Object.freeze) Object.freeze(this);
-}
-
-MidiHeader.prototype = Object.create(null);
-
-function MidiTrack(events) {
-   this.events = events;
-   
-   if (Object.freeze) Object.freeze(this);
-}
-
-MidiTrack.prototype = Object.create(null);
-
-function MidiEvent(params) {
-   this.type = params.type;
-   this.delta = params.delta;
-   this.data = params.data; // TODO: this is a reference and a catch-all (should go away once we flesh out the model)
-
-   if (Object.freeze) Object.freeze(this);
-}
-
-MidiEvent.prototype = Object.create(null);
-
-function MidiMetaEvent(params) {
-   this.subtype = params.subtype || 'unknown';
-
-   MidiEvent.call(this, params);
-}
-
-MidiMetaEvent.prototype = Object.create(MidiEvent);
-
-function MidiMetaTempoEvent(params) {
-   this.tempo = parseByteArrayToNumber(params.dataBytes);
-
-   params.subtype = 'tempo';
-
-   MidiMetaEvent.call(this, params);
-}
-
-MidiMetaTempoEvent.prototype = Object.create(MidiMetaEvent);
-
-function MidiMetaTimeSignatureEvent(params) {
-   this.timeSignature = {
-      numerator: params.dataBytes[0],
-      denominator: Math.pow(2, params.dataBytes[1]),
-      metronomeClicksPerTick: params.dataBytes[2],
-      thirtySecondNotesPerBeat: params.dataBytes[3]
-   };
-
-   if (Object.freeze) Object.freeze(this.timeSignature);
-
-   params.subtype = 'time_signature';
-
-   MidiMetaEvent.call(this, params);
-}
-
-MidiMetaTimeSignatureEvent.prototype = Object.create(MidiMetaEvent);
-
-function MidiMetaInstrumentNameEvent(params) {
-   this.instrumentName = params.dataBytes.map(function (charCode) { return String.fromCharCode(charCode); }).join('');
-
-   params.subtype = 'instrument_name';
-
-   MidiMetaEvent.call(this, params);
-}
-
-MidiMetaInstrumentNameEvent.prototype = Object.create(MidiMetaEvent);
-
-function MidiMetaEndOfTrackEvent(params) {
-   params.subtype = 'end';
-
-   MidiMetaEvent.call(this, params);
-}
-
-MidiMetaEndOfTrackEvent.prototype = Object.create(MidiMetaEvent);
-
-function MidiSystemEvent(params) {
-   params.type = 'system';
-
-   MidiEvent.call(this, params);
-}
-
-MidiSystemEvent.prototype = Object.create(MidiEvent);
-
-function MidiNoteEvent(params) {
-   params.type = 'note';
-
-   this.note = params.note;
-   this.velocity = params.velocity;
-   
-   MidiEvent.call(this, params);
-}
-
-MidiNoteEvent.prototype = Object.create(MidiEvent);
-
-function MidiNoteOnEvent(params) {
-   params.type = 'note';
-   params.subtype = 'on';
-
-   MidiNoteEvent.call(this, params);
-}
-
-MidiNoteOnEvent.prototype = Object.create(MidiNoteEvent);
-
-function MidiNoteOffEvent(params) {
-   params.type = 'note';
-   params.subtype = 'off';
-
-   MidiNoteEvent.call(this, params);
-}
-
-MidiNoteOffEvent.prototype = Object.create(MidiNoteEvent);
+var constants = require('./lib/midi-constants.js'),
+    BYTE_MASK = constants.BYTE_MASK,
+    HIGHBIT_MASK = constants.HIGHBIT_MASK,
+    META_EVENT = constants.META_EVENT,
+    SYSEX_EVENT_MASK = constants.SYSEX_EVENT_MASK,
+    NOTE_ON_MASK = constants.NOTE_ON_MASK,
+    NOTE_OFF_MASK = constants.NOTE_OFF_MASK,
+    TEMPO_META_EVENT = constants.TEMPO_META_EVENT,
+    TIME_SIG_META_EVENT = constants.TIME_SIG_META_EVENT,
+    INST_NAME_META_EVENT = constants.INST_NAME_META_EVENT,
+    END_OF_TRACK_META_EVENT = constants.END_OF_TRACK_META_EVENT;
 
 /* utilities */
-
-function toHex(item) {
-   if (item instanceof Array) {
-      return item.map(function (b) { return b.toString(16); });
-   } else {
-      return item.toString(16);
-   }
-   
-}
-
-function toArr(dataView, start, end) {
-   return Array.apply([], dataView.subarray(start, end));
-}
-
-function parseByteArrayToNumber(byteArray, isVariable) {
-   var length = byteArray.length;
-
-   return byteArray.reduce(function _buildNumber(number, oneByte, i) {
-      var rawByteValue = isVariable ? oneByte & HIGHBIT_MASK : oneByte,
-          bitshiftedValue = rawByteValue << ((length-i-1) * (isVariable ? 7 : 8));
-      return number + bitshiftedValue;
-   }, 0);
-}
-
-function parseStringFromRawChars(charArray) {
-   return charArray.map(function(c) {
-      var charStr = String.fromCharCode(c);
-      return charStr;
-   }).join('');
-}
-
-function parseNextVariableChunk(midiBytes) {
-   function variableByteChunk(bytes) {
-      if (bytes.length === 0) return [];
-
-      var nByte = bytes.shift();
-
-      if ((nByte & BYTE_MASK) !== BYTE_MASK) return [nByte];
-
-      return [nByte].concat(variableByteChunk(bytes));
-   }
-
-   return variableByteChunk(midiBytes.slice());
-}
 
 var generateMatchMask = curry(function _matchMask(bitMask) {
    return function _matchTestByte(testByte) {
