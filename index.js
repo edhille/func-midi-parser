@@ -14,7 +14,13 @@ var midiUtils = require('./lib/midi-utils.js'),
     parseVariableBytesToNumber = midiUtils.parseVariableBytesToNumber,
     parseStringFromRawChars = midiUtils.parseStringFromRawChars,
     parseByteArrayToNumber = midiUtils.parseByteArrayToNumber,
-    parseNextVariableChunk = midiUtils.parseNextVariableChunk;
+    parseNextVariableChunk = midiUtils.parseNextVariableChunk,
+    generateMatcher = midiUtils.generateMatcher,
+    generateMatchMask = midiUtils.generateMatchMask,
+    isValidEventCode = midiUtils.isValidEventCode,
+    isMetaEvent = midiUtils.isMetaEvent,
+    isSysexEvent = midiUtils.isSysexEvent,
+    isNoteEvent = midiUtils.isNoteEvent;
 
 var types = require('./lib/data-types.js'),
     Midi = types.Midi,
@@ -40,39 +46,6 @@ var constants = require('./lib/midi-constants.js'),
     END_OF_TRACK_META_EVENT = constants.END_OF_TRACK_META_EVENT;
 
 /* utilities */
-
-var generateMatchMask = curry(function _matchMask(bitMask) {
-   return function _matchTestByte(testByte) {
-      return (testByte & bitMask) === bitMask;
-   };
-});
-
-var generateMatcher = curry(function _matcher(code) {
-   return function _matchCode(testCode) {
-      return testCode === code;
-   };
-});
-
-var isMetaEvent = generateMatcher(META_EVENT);
-var isSysexEvent = generateMatchMask(SYSEX_EVENT_MASK);
-var isNoteOnEvent = generateMatchMask(NOTE_ON_MASK);
-var isNoteOffEvent = generateMatchMask(NOTE_OFF_MASK);
-
-function isVariableEvent(code) {
-   return isMetaEvent(code) || isSysexEvent(code);
-}
-
-function isNoteEvent(code) {
-   return isNoteOnEvent(code) || isNoteOffEvent(code);
-}
-
-function isValidEventCode(code) {
-   if (isMetaEvent(code)) return true;
-   if (isNoteEvent(code)) return true;
-   if (isSysexEvent(code)) return true;
-
-   return false;
-}
 
 var generateMetaEventGuard = partial(function _generateEventGuard(metaEventSubtype, processEvent) {
    var eventMatches = generateMatcher(metaEventSubtype);
