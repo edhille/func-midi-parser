@@ -178,39 +178,93 @@ describe('Midi Data Types', function () {
 
         describe('error cases', function () {
 
-            beforeEach(function () {
-                metaTempoEvent = new MidiMetaTempoEvent({});
+            describe('incomoplete parameters', function () {
+
+                it('should throw an error if we do not pass in dataBytes', function () {
+                    expect(function () {
+                        new MidiMetaTempoEvent({});
+                    }).to.throw(TypeError);
+                });
             });
 
-            it('should not allow gibberish for dataBytes', function () {
-                metaTempoEvent.tempo.should.equal(0);
+            describe('invalid data', function () {
+
+                beforeEach(function () {
+                    metaTempoEvent = new MidiMetaTempoEvent({
+                        dataBytes: ['foo', 'bar']
+                    });
+                });
+
+                it('should convert gibberish for dataBytes to "0" tempo', function () {
+                    metaTempoEvent.tempo.should.equal(0);
+                });
             });
         });
 
         describe('valid cases', function () {
 
-            it('should have an instance');
+            beforeEach(function () {
+                metaTempoEvent = new MidiMetaTempoEvent({
+                    code: 0xFF,
+                    subtype: 0x51,
+                    dataBytes: [0x01, 0x02, 0x03, 0x04]
+                });
+            });
 
-            it('should be an instance of');
+            it('should have an instance', function () {
+                (metaTempoEvent instanceof MidiMetaTempoEvent).should.be.true;
+            });
 
-            it('should have a tempo property');
+            it('should be an instance of', function () {
+                (metaTempoEvent instanceof MidiMetaEvent).should.be.true;
+            });
+
+            it('should have a tempo property calculated from "dataBytes"', function () {
+                metaTempoEvent.tempo.should.equal(0x1020304);
+            });
         });
     });
 
     describe('MidiMetaTimeSignatureEvent', function() {
+        var MidiMetaTimeSignatureEvent = MidiDataTypes.MidiMetaTimeSignatureEvent,
+            MidiMetaEvent = MidiDataTypes.MidiMetaEvent,
+            metaTimeSignatureEvent = null;
 
         describe('error cases', function () {
 
-            it('should throw an error');
+            it('should throw an error if given no parameters', function () {
+                expect(function () {
+                    new MidiMetaTimeSignatureEvent();
+                }).to.throw(TypeError);
+            });
+
+            it('should throw an error if you try to modify the "timeSignature"', function () {
+                expect(function () {
+                    metaTimeSignatureEvent = new MidiMetaTimeSignatureEvent({});
+                    metaTimeSignatureEvent.timeSignature = 'fail';
+                }).to.throw(TypeError);
+            });
         });
 
         describe('valid cases', function () {
 
-            it('should have an instance');
+            beforeEach(function () {
+                metaTimeSignatureEvent = new MidiMetaTimeSignatureEvent({
+                    dataBytes: [0x01, 0x02, 0x03, 0x04]
+                });
+            });
 
-            it('should be an instance of');
+            it('should have an instance', function () {
+                (metaTimeSignatureEvent instanceof MidiMetaTimeSignatureEvent).should.be.true;
+            });
 
-            it('should have a time signature property');
+            it('should be an instance of MidiMetaEvent', function () {
+                (metaTimeSignatureEvent instanceof MidiMetaEvent).should.be.true;
+            });
+
+            it('should have a time signature property', function () {
+                metaTimeSignatureEvent.timeSignature.should.be.defined; 
+            });
         });
     });
 });
