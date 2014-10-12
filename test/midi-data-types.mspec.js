@@ -172,12 +172,19 @@ describe('Midi Data Types', function () {
     });
 
     describe('MidiMetaTempoEvent', function() {
+        var MidiMetaTempoEvent = MidiDataTypes.MidiMetaTempoEvent,
+            MidiMetaEvent = MidiDataTypes.MidiMetaEvent,
+            metaTempoEvent = null;
 
         describe('error cases', function () {
 
-            it('should throw an error');
+            beforeEach(function () {
+                metaTempoEvent = new MidiMetaTempoEvent({});
+            });
 
-            it('should not allow gibberish for dataBytes');
+            it('should not allow gibberish for dataBytes', function () {
+                metaTempoEvent.tempo.should.equal(0);
+            });
         });
 
         describe('valid cases', function () {
