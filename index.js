@@ -2,7 +2,7 @@
 /* jshint node: true, expr: true, es5: true */
 'use strict';
 
-var utils = require('./lib/funtils.js'),
+var utils = require('funtils'),
     curry = utils.curry,
     splice = utils.splice,
     partial = utils.partial,
