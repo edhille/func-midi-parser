@@ -48,7 +48,7 @@ describe('midiParser', function() {
       describe('with a bad header format', function () {
 
          it('should throw an error', function (done) {
-            shouldThrowFor(/unknown event code "c0"/, 'MIDIBadHeaderFormat.mid', done);
+            shouldThrowFor(/malformed midi: unknown format \(3\)/, 'MIDIBadHeaderFormat.mid', done);
          });
       });
    });
@@ -141,9 +141,9 @@ describe('midiParser', function() {
                      midiTrack = null;
                   });
 
-                  it('should have an instrument name');//, function () {
-                  // midiTrack.instrumentName.should.equal('01');
-                  // });
+                  it('should have an instrument name', function () {
+                      midiTrack.name.should.equal('01');
+                  });
 
                   describe('Events', function () {
                      var events;

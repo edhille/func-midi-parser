@@ -138,6 +138,9 @@ function parseHeader(midiBytes) {
     if (size !== 6) throw new Error('malformed midi: unexpected header size (' + size + ')');
 
     var format = parseByteArrayToNumber(midiBytes.slice(8, 10));
+
+    if (format < 0 || format > 2) throw new Error('malformed midi: unknown format (' + format + ')');
+
     var trackCount = parseByteArrayToNumber(midiBytes.slice(10, 12));
     var timeDivision = parseByteArrayToNumber(midiBytes.slice(12, 14));
 
@@ -148,10 +151,8 @@ function parseHeader(midiBytes) {
     });
 }
 
-function parseTracks(midiBytes, track) {
+function parseTracks(midiBytes) {
    if (midiBytes.length === 0) return [];
-
-   track = track || 0;
 
    var chunkIdOffset = 4,
        chunkIdBytes = midiBytes.slice(0, chunkIdOffset),
@@ -165,12 +166,14 @@ function parseTracks(midiBytes, track) {
        trackSize = parseByteArrayToNumber(trackSizeBytes),
        eventsOffset = trackSizeOffset + trackSize,
        eventsBytes = midiBytes.slice(trackSizeOffset, eventsOffset),
-       events = parseEvents(eventsBytes, null, track);
+       events = parseEvents(eventsBytes),
+       nameEvents = events.filter(function (event) { return event instanceof MidiMetaInstrumentNameEvent; }),
+       trackName = nameEvents.length <= 0 ? '' : nameEvents[0].instrumentName;
 
-   return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(eventsOffset), track + 1));
+   return [new MidiTrack(events, trackName)].concat(parseTracks(midiBytes.slice(eventsOffset)));
 }
 
-function parseEvents(midiBytes, lastEventType, track) {
+function parseEvents(midiBytes, lastEventType) {
    if (midiBytes.length === 0) return [];
 
    var deltaBytes = parseNextVariableChunk(midiBytes),
@@ -208,39 +211,38 @@ function parseEvents(midiBytes, lastEventType, track) {
       midiEvent = processNoteEvent(eventCode, deltaTime, dataBytes);
 
       // TODO: this does not seem ideal, but we need to track note length
-//       if (midiEvent instanceof MidiNoteOnEvent) {
-//          var laterEvents = parseEvents(eventBytes, eventCode);
-//          var endNoteFound = false;
-//          var noteLength = laterEvents.reduce(function (sum, event) {
-//             if (endNoteFound) return sum;
-//             if (event.note === midiEvent.note && event instanceof MidiNoteOffEvent) endNoteFound = true;
-//             return sum + event.delta;
-//          }, 0);
-//
-//          midiEvent = new MidiNoteOnEvent({
-//             code: midiEvent.code,
-//             subtype: midiEvent.subtype,
-//             note: midiEvent.note,
-//             velocity: midiEvent.velocity,
-//             delta: midiEvent.delta,
-//             length: noteLength
-//          });
-//
-//          return [midiEvent].concat(laterEvents);
-//       }
+      if (midiEvent instanceof MidiNoteOnEvent) {
+         var laterEvents = parseEvents(eventBytes, eventCode);
+         var endNoteFound = false;
+         var noteLength = laterEvents.reduce(function (sum, event) {
+            if (endNoteFound) return sum;
+            if (event.note === midiEvent.note && event instanceof MidiNoteOffEvent) endNoteFound = true;
+            return sum + event.delta;
+         }, 0);
+
+         midiEvent = new MidiNoteOnEvent({
+            code: midiEvent.code,
+            subtype: midiEvent.subtype,
+            note: midiEvent.note,
+            velocity: midiEvent.velocity,
+            delta: midiEvent.delta,
+            length: noteLength
+         });
+
+         return [midiEvent].concat(laterEvents);
+      }
 
    } else if (isChannelEvent(eventCode)) {
       // TODO: gobble up channel events...
       eventBytes = eventBytes.slice(4);
    } else {
-      throw new TypeError('unknown event code "' + toHex(eventCode) + '"');
+          throw new TypeError('unknown event code "' + toHex(eventCode) + '"');
    }
 
-   return [midiEvent].concat(parseEvents(eventBytes, eventCode, track));
+   return [midiEvent].concat(parseEvents(eventBytes, eventCode));
 }
 
-module.exports = {
-    parse: parse,
+module.exports = { parse: parse,
     types: types,
     constants: constants
 };

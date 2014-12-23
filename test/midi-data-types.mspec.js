@@ -36,7 +36,7 @@ describe('Midi Data Types', function () {
         });
 
         describe('valid cases', function () {
-            
+
             beforeEach(function () {
                 midi = new Midi({
                     header: 'HEADER',
@@ -86,7 +86,7 @@ describe('Midi Data Types', function () {
         describe('error cases', function () {
 
             beforeEach(function () {
-                track = new MidiTrack({});    
+                track = new MidiTrack({});
             });
 
             it('should throw an error', function () {
@@ -99,11 +99,25 @@ describe('Midi Data Types', function () {
         describe('valid cases', function () {
 
             beforeEach(function () {
-                track = new MidiTrack({});    
+                track = new MidiTrack({});
             });
 
             it('should have an instance', function () {
                 (track instanceof MidiTrack).should.be.true;
+            });
+
+            it('should have a "name" property that is empty', function () {
+                track.name.should.equal('');
+            });
+
+            describe('when name is given', function () {
+                beforeEach(function () {
+                    track = new MidiTrack([], 'FOO');
+                });
+
+                it('should have a "name" property', function () {
+                    track.name.should.equal('FOO');
+                });
             });
         });
     });
@@ -115,7 +129,7 @@ describe('Midi Data Types', function () {
         describe('error cases', function () {
 
             beforeEach(function () {
-                event = new MidiEvent({});    
+                event = new MidiEvent({});
             });
 
             it('should throw an error', function () {
@@ -145,7 +159,7 @@ describe('Midi Data Types', function () {
         describe('error cases', function () {
 
             beforeEach(function () {
-                metaEvent = new MidiMetaEvent({});    
+                metaEvent = new MidiMetaEvent({});
             });
 
             it('should throw an error', function () {
@@ -158,7 +172,7 @@ describe('Midi Data Types', function () {
         describe('valid cases', function () {
 
             beforeEach(function () {
-                metaEvent = new MidiMetaEvent({});    
+                metaEvent = new MidiMetaEvent({});
             });
 
             it('should have an instance', function () {
@@ -263,7 +277,7 @@ describe('Midi Data Types', function () {
             });
 
             it('should have a time signature property', function () {
-                metaTimeSignatureEvent.timeSignature.should.be.defined; 
+                metaTimeSignatureEvent.timeSignature.should.be.defined;
             });
         });
     });

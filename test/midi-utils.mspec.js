@@ -20,7 +20,7 @@ describe('midi utilities', function () {
        describe('with Uint8Array', function () {
           var uint8Arr,
               simpleArr;
-          
+
           beforeEach(function () {
              uint8Arr = new Uint8Array(2);
 
@@ -44,7 +44,7 @@ describe('midi utilities', function () {
        describe('with empty Uint8Array', function () {
           var uint8Arr,
               simpleArr;
-          
+
           beforeEach(function () {
              uint8Arr = new Uint8Array();
 
