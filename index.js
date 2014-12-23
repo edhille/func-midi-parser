@@ -20,7 +20,8 @@ var midiUtils = require('./lib/midi-utils.js'),
     isValidEventCode = midiUtils.isValidEventCode,
     isMetaEvent = midiUtils.isMetaEvent,
     isSysexEvent = midiUtils.isSysexEvent,
-    isNoteEvent = midiUtils.isNoteEvent;
+    isNoteEvent = midiUtils.isNoteEvent,
+    isChannelEvent = midiUtils.isChannelEvent;
 
 var types = require('./lib/data-types.js'),
     Midi = types.Midi,
@@ -106,6 +107,7 @@ function generateNote(NoteClass, eventCode, deltaTime, dataBytes) {
    return new NoteClass({
       code: eventCode,
       delta: deltaTime,
+      channel: eventCode & 0xf,
       note: noteNumber,
       velocity: noteVelocity
    });
@@ -146,8 +148,10 @@ function parseHeader(midiBytes) {
     });
 }
 
-function parseTracks(midiBytes) {
+function parseTracks(midiBytes, track) {
    if (midiBytes.length === 0) return [];
+
+   track = track || 0;
 
    var chunkIdOffset = 4,
        chunkIdBytes = midiBytes.slice(0, chunkIdOffset),
@@ -161,12 +165,12 @@ function parseTracks(midiBytes) {
        trackSize = parseByteArrayToNumber(trackSizeBytes),
        eventsOffset = trackSizeOffset + trackSize,
        eventsBytes = midiBytes.slice(trackSizeOffset, eventsOffset),
-       events = parseEvents(eventsBytes);
+       events = parseEvents(eventsBytes, null, track);
 
-   return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(eventsOffset)));
+   return [new MidiTrack(events)].concat(parseTracks(midiBytes.slice(eventsOffset), track + 1));
 }
 
-function parseEvents(midiBytes, lastEventType) {
+function parseEvents(midiBytes, lastEventType, track) {
    if (midiBytes.length === 0) return [];
 
    var deltaBytes = parseNextVariableChunk(midiBytes),
@@ -193,47 +197,46 @@ function parseEvents(midiBytes, lastEventType) {
       sizeBytes = parseNextVariableChunk(eventBytes);
       size = parseByteArrayToNumber(sizeBytes, true);
       dataBytes = eventBytes.slice(sizeBytes.length, sizeBytes.length + size);
-
-      midiEvent = processMetaEvent(eventCode, subtype, deltaTime, dataBytes);
-
-      // TODO: this is not exactly how I'd like to do this...
       eventBytes = eventBytes.slice(sizeBytes.length + size);
+      midiEvent = processMetaEvent(eventCode, subtype, deltaTime, dataBytes);
    } else if (isSysexEvent(eventCode)) {
       throw new Error('TODO: sysex event processing...');
    } else if (isNoteEvent(eventCode)) {
       dataBytes = eventBytes.slice(0, 2);
+      eventBytes = eventBytes.slice(dataBytes.length);
 
       midiEvent = processNoteEvent(eventCode, deltaTime, dataBytes);
 
-      // TODO: again, not exactly how I'd like to adjust the eventBytes array
-      eventBytes = eventBytes.slice(2);
-
       // TODO: this does not seem ideal, but we need to track note length
-      if (midiEvent instanceof MidiNoteOnEvent) {
-         var laterEvents = parseEvents(eventBytes, eventCode);
-         var endNoteFound = false;
-         var noteLength = laterEvents.reduce(function (sum, event) {
-            if (endNoteFound) return sum;
-            if (event.note === midiEvent.note && event instanceof MidiNoteOffEvent) endNoteFound = true;
-            return sum + event.delta;
-         }, 0);
+//       if (midiEvent instanceof MidiNoteOnEvent) {
+//          var laterEvents = parseEvents(eventBytes, eventCode);
+//          var endNoteFound = false;
+//          var noteLength = laterEvents.reduce(function (sum, event) {
+//             if (endNoteFound) return sum;
+//             if (event.note === midiEvent.note && event instanceof MidiNoteOffEvent) endNoteFound = true;
+//             return sum + event.delta;
+//          }, 0);
+//
+//          midiEvent = new MidiNoteOnEvent({
+//             code: midiEvent.code,
+//             subtype: midiEvent.subtype,
+//             note: midiEvent.note,
+//             velocity: midiEvent.velocity,
+//             delta: midiEvent.delta,
+//             length: noteLength
+//          });
+//
+//          return [midiEvent].concat(laterEvents);
+//       }
 
-         midiEvent = new MidiNoteOnEvent({
-            code: midiEvent.code,
-            subtype: midiEvent.subtype,
-            note: midiEvent.note,
-            velocity: midiEvent.velocity,
-            delta: midiEvent.delta,
-            length: noteLength
-         });
-
-         return [midiEvent].concat(laterEvents);
-      }
+   } else if (isChannelEvent(eventCode)) {
+      // TODO: gobble up channel events...
+      eventBytes = eventBytes.slice(4);
    } else {
       throw new TypeError('unknown event code "' + toHex(eventCode) + '"');
    }
 
-   return [midiEvent].concat(parseEvents(eventBytes, eventCode));
+   return [midiEvent].concat(parseEvents(eventBytes, eventCode, track));
 }
 
 module.exports = {

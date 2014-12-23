@@ -14,6 +14,63 @@ describe('midi utilities', function () {
 
     chai.should();
 
+    describe('#toArr', function () {
+       var toArr = midiUtils.toArr;
+
+       describe('with Uint8Array', function () {
+          var uint8Arr,
+              simpleArr;
+          
+          beforeEach(function () {
+             uint8Arr = new Uint8Array(2);
+
+             uint8Arr[0] = 1;
+             uint8Arr[2] = 2;
+
+             simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
+          });
+
+          it('should convert to simple "array"', function () {
+             // here, we just see if it has metods available on an Array,
+             // but not on Uint8Array
+             simpleArr.map.should.be.defined;
+          });
+
+          it('should have same length as our original array', function () {
+             simpleArr.length.should.equal(uint8Arr.length);
+          });
+       });
+
+       describe('with empty Uint8Array', function () {
+          var uint8Arr,
+              simpleArr;
+          
+          beforeEach(function () {
+             uint8Arr = new Uint8Array();
+
+             simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
+          });
+
+          it('should convert to simple "array"', function () {
+             // here, we just see if it has metods available on an Array,
+             // but not on Uint8Array
+             simpleArr.map.should.be.defined;
+          });
+
+          it('should have same length as our original array', function () {
+             simpleArr.length.should.equal(uint8Arr.length);
+          });
+       });
+    });
+
+    describe('#toHex', function () {
+        var toHex = midiUtils.toHex;
+
+        it('should convert any number to it\'s hex value');
+
+        it('should convert any non-number to 0x0');
+    });
+
     describe('#parseByteArrayToNumber', function () {
         var parseByteArrayToNumber = midiUtils.parseByteArrayToNumber;
 
@@ -49,6 +106,30 @@ describe('midi utilities', function () {
         });
     });
 
+    describe('#parseStringFromRawChars', function () {
+        var parseStringFromRawChars = midiUtils.parseStringFromRawChars;
+
+        it('should convert a string of char bytes into a string');
+
+        it('should convert an empty array into an empty string');
+    });
+
+    describe('#parseNextVariableChunk', function () {
+        var parseNextVariableChunk = midiUtils.parseNextVariableChunk;
+
+        it('should extract the ?? bytes from the given array');
+
+        it('should return full array if there is no ??');
+    });
+
+    describe('#generateMatcher', function () {
+        var generateMatcher = midiUtils.generateMatcher;
+
+        it('should correctly match an exact value');
+
+        it('should correctly NOT match an invalid value');
+    });
+
     describe('#generateMaskMatcher', function () {
        var generateMaskMatcher = midiUtils.generateMaskMatcher,
            matcher = function () {},
@@ -63,8 +144,76 @@ describe('midi utilities', function () {
           matcher(0x91).should.be.true;
        });
 
-       it('should match not an event that does not bitwise and with the mask', function () {
+       it('should not match an event that does not bitwise and with the mask', function () {
           matcher(0x51).should.be.false;
+       });
+    });
+
+    describe('#isMetaEvent', function () {
+       var isMetaEvent = midiUtils.isMetaEvent;
+
+       it('should reject an event below lower boundary');
+       it('should accept an event in the boundary');
+       it('should reject an event above upper boundary');
+    });
+
+    describe('#isSysexEvent', function () {
+       var isSysexEvent = midiUtils.isSysexEvent;
+
+       it('should reject an event below lower boundary');
+       it('should accept an event in the boundary');
+       it('should reject an event above upper boundary');
+    });
+
+    describe('#isChannelEvent', function () {
+       var isChannelEvent = midiUtils.isChannelEvent;
+
+       it('should reject an event below lower boundary');
+       it('should accept an event in the boundary');
+       it('should reject an event above upper boundary');
+    });
+
+    describe('#isNoteEvent', function () {
+       var isNoteEvent = midiUtils.isNoteEvent;
+
+       it('should not match an event below lower bountdary', function () {
+          isNoteEvent(0x7f).should.not.be.true;
+       });
+
+       it('should match a note off lower bountdary event', function () {
+          isNoteEvent(0x80).should.be.true;
+       });
+
+       it('should match a note off upper bountdary event', function () {
+          isNoteEvent(0x8f).should.be.true;
+       });
+
+       it('should match a note on lower bountdary event', function () {
+          isNoteEvent(0x90).should.be.true;
+       });
+
+       it('should match a note on upper bountdary event', function () {
+          isNoteEvent(0x9f).should.be.true;
+       });
+
+       it('should not match an event above upper bountdary', function () {
+          isNoteEvent(0xa0).should.not.be.true;
+       });
+    });
+
+    describe('#isValidEventCode', function () {
+       var isValidEventCode = midiUtils.isValidEventCode;
+
+       it('should not match an event below lower boundary', function () {
+          isValidEventCode(0x7f).should.not.be.true;
+       });
+
+       it('should match an event within boundary', function () {
+          isValidEventCode(0xa0).should.be.true;
+       });
+
+       it('should not match an event above upper boundary', function () {
+          isValidEventCode(0x101).should.not.be.true;
        });
     });
 });
