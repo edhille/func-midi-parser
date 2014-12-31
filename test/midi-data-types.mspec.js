@@ -192,7 +192,7 @@ describe('Midi Data Types', function () {
 
         describe('error cases', function () {
 
-            describe('incomoplete parameters', function () {
+            describe('incomplete parameters', function () {
 
                 it('should throw an error if we do not pass in dataBytes', function () {
                     expect(function () {
@@ -229,7 +229,7 @@ describe('Midi Data Types', function () {
                 (metaTempoEvent instanceof MidiMetaTempoEvent).should.be.true;
             });
 
-            it('should be an instance of', function () {
+            it('should be an instance of MidiMetaEvent', function () {
                 (metaTempoEvent instanceof MidiMetaEvent).should.be.true;
             });
 
@@ -280,5 +280,43 @@ describe('Midi Data Types', function () {
                 metaTimeSignatureEvent.timeSignature.should.be.defined;
             });
         });
+    });
+
+    describe('MidiChannelEvent', function () {
+       var MidiChannelEvent = MidiDataTypes.MidiChannelEvent,
+           MidiEvent = MidiDataTypes.MidiEvent,
+           controllerEvent = null;
+
+       describe('valid cases', function () {
+          
+          beforeEach(function () {
+             controllerEvent = new MidiChannelEvent({
+                type: 'meta',
+                subtype: 'controller',
+                channel: 4,
+                dataBytes: [0x0, 0x7f]
+             });
+          });
+
+          it('should have an instance', function () {
+             (controllerEvent instanceof MidiChannelEvent).should.be.true;
+          });
+
+          it('should be an instance of MidiEvent', function () {
+             (controllerEvent instanceof MidiEvent).should.be.true;
+          });
+
+          it('should have the correct channel', function () {
+             controllerEvent.channel.should.equal(4);
+          });
+
+          it('should have the correct controllerType', function () {
+             controllerEvent.controllerType.should.equal(0x0);
+          });
+
+          it('should have the correct value', function () {
+             controllerEvent.value.should.equal(0x7f);
+          });
+       });
     });
 });

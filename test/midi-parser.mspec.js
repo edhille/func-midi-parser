@@ -253,8 +253,26 @@ describe('midiParser', function() {
             shouldHaveSameNumberOfOnAndOffEvents(tracks[4]);
          });
 
+         it('track five should have first note starting with a delta of 6576', function () {
+            var firstNoteOnEvent = tracks[4].events.filter(function (event) { return event instanceof MidiNoteOnEvent; })[0];
+
+            firstNoteOnEvent.delta.should.equal(6576);
+         });
+
+         it('track five notes should indicate they are track 5', function () {
+            var noTrackEvents = tracks[4].events.filter(function (event) { return event.track !== 5; });
+
+            noTrackEvents.length.should.equal(0);
+         });
+
          it('track six should have same number of note "on" and note "off" events', function () {
             shouldHaveSameNumberOfOnAndOffEvents(tracks[5]);
+         });
+
+         it('track six should have first note starting with a delta of 288', function () {
+            var firstNoteOnEvent = tracks[5].events.filter(function (event) { return event instanceof MidiNoteOnEvent; })[0];
+
+            firstNoteOnEvent.delta.should.equal(288);
          });
 
          it('track seven should have same number of note "on" and note "off" events', function () {
