@@ -28,6 +28,7 @@
     "sinon": "^1.10.3"
   },
   "dependencies": {
-    "funtils": "0.0.1"
+    "funtils": "0.0.1",
+    "gulp": "^3.8.11"
   }
 }
