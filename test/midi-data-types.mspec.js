@@ -193,23 +193,10 @@ describe('Midi Data Types', function () {
 
             describe('incomplete parameters', function () {
 
-                it('should throw an error if we do not pass in dataBytes', function () {
+                it('should throw an error if we do not pass in any parameters', function () {
                     expect(function () {
                         new MidiMetaTempoEvent({});
                     }).to.throw(TypeError);
-                });
-            });
-
-            describe('invalid data', function () {
-
-                beforeEach(function () {
-                    metaTempoEvent = new MidiMetaTempoEvent({
-                        dataBytes: ['foo', 'bar']
-                    });
-                });
-
-                it('should convert gibberish for dataBytes to "0" tempo', function () {
-                    metaTempoEvent.tempo.should.equal(0);
                 });
             });
         });
@@ -220,7 +207,7 @@ describe('Midi Data Types', function () {
                 metaTempoEvent = new MidiMetaTempoEvent({
                     code: 0xFF,
                     subtype: 0x51,
-                    dataBytes: [0x01, 0x02, 0x03, 0x04]
+					tempo: 0x1020304
                 });
             });
 
