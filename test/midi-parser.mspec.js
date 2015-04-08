@@ -1,13 +1,11 @@
-/* vim: set expandtab ts=3 sw=3: */
-/* jshint node: true, expr: true, es5: true */
-/* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true, xit: true */
+/* jshint expr: true */
+/* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true */
 'use strict';
 
 var fs = require('fs'),
     chai = require('chai'),
     midiParser = require('../index.js'),
     types = midiParser.types,
-    utils = require('../lib/midi-utils.js'),
     MidiNoteOnEvent = types.MidiNoteOnEvent,
     MidiNoteOffEvent = types.MidiNoteOffEvent;
 
