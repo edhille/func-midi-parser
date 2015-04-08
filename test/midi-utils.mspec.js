@@ -1,219 +1,218 @@
-/* vim: set expandtab ts=3 sw=3: */
-/* jshint node: true, expr: true, es5: true */
-/* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true, xit: true */
+/* jshint expr: true */
+/* globals describe: true, beforeEach: true, it: true, Uint8Array: true */
 'use strict';
 
 var chai = require('chai'),
-    midiUtils = require('../lib/midi-utils.js'),
-    constants = require('../lib/midi-constants.js'),
-    NOTE_ON_MASK = constants.NOTE_ON_MASK;
+	midiUtils = require('../lib/midi-utils.js'),
+	constants = require('../lib/midi-constants.js'),
+	NOTE_ON_MASK = constants.NOTE_ON_MASK;
 
-describe('midi utilities', function () {
+describe('midi utilities', function() {
 
-    var expect = chai.expect;
+	var expect = chai.expect;
 
-    chai.should();
+	chai.should();
 
-    describe('#toArr', function () {
-       var toArr = midiUtils.toArr;
+	describe('#toArr', function() {
+		var toArr = midiUtils.toArr;
 
-       describe('with Uint8Array', function () {
-          var uint8Arr,
-              simpleArr;
+		describe('with Uint8Array', function() {
+			var uint8Arr,
+				simpleArr;
 
-          beforeEach(function () {
-             uint8Arr = new Uint8Array(2);
+			beforeEach(function() {
+				uint8Arr = new Uint8Array(2);
 
-             uint8Arr[0] = 1;
-             uint8Arr[2] = 2;
+				uint8Arr[0] = 1;
+				uint8Arr[2] = 2;
 
-             simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
-          });
+				simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
+			});
 
-          it('should convert to simple "array"', function () {
-             // here, we just see if it has metods available on an Array,
-             // but not on Uint8Array
-             simpleArr.map.should.be.defined;
-          });
+			it('should convert to simple "array"', function() {
+				// here, we just see if it has metods available on an Array,
+				// but not on Uint8Array
+				simpleArr.map.should.be.defined;
+			});
 
-          it('should have same length as our original array', function () {
-             simpleArr.length.should.equal(uint8Arr.length);
-          });
-       });
+			it('should have same length as our original array', function() {
+				simpleArr.length.should.equal(uint8Arr.length);
+			});
+		});
 
-       describe('with empty Uint8Array', function () {
-          var uint8Arr,
-              simpleArr;
+		describe('with empty Uint8Array', function() {
+			var uint8Arr,
+				simpleArr;
 
-          beforeEach(function () {
-             uint8Arr = new Uint8Array();
+			beforeEach(function() {
+				uint8Arr = new Uint8Array();
 
-             simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
-          });
+				simpleArr = toArr(uint8Arr, 0, uint8Arr.length);
+			});
 
-          it('should convert to simple "array"', function () {
-             // here, we just see if it has metods available on an Array,
-             // but not on Uint8Array
-             simpleArr.map.should.be.defined;
-          });
+			it('should convert to simple "array"', function() {
+				// here, we just see if it has metods available on an Array,
+				// but not on Uint8Array
+				simpleArr.map.should.be.defined;
+			});
 
-          it('should have same length as our original array', function () {
-             simpleArr.length.should.equal(uint8Arr.length);
-          });
-       });
-    });
+			it('should have same length as our original array', function() {
+				simpleArr.length.should.equal(uint8Arr.length);
+			});
+		});
+	});
 
-    describe('#toHex', function () {
-        var toHex = midiUtils.toHex;
+	describe('#toHex', function() {
+		var toHex = midiUtils.toHex;
 
-        it('should convert any number to it\'s hex value');
+		it('should convert any number to it\'s hex value');
 
-        it('should convert any non-number to 0x0');
-    });
+		it('should convert any non-number to 0x0');
+	});
 
-    describe('#parseByteArrayToNumber', function () {
-        var parseByteArrayToNumber = midiUtils.parseByteArrayToNumber;
+	describe('#parseByteArrayToNumber', function() {
+		var parseByteArrayToNumber = midiUtils.parseByteArrayToNumber;
 
-        describe('error cases', function () {
+		describe('error cases', function() {
 
-            it('should throw ane error if given no bytes', function () {
-                expect(parseByteArrayToNumber).to.throw(TypeError);
-            });
-        });
+			it('should throw ane error if given no bytes', function() {
+				expect(parseByteArrayToNumber).to.throw(TypeError);
+			});
+		});
 
-        describe('when no "isVariable" flag is passed', function () {
+		describe('when no "isVariable" flag is passed', function() {
 
-            it('should return value of first array element if given array with only one element', function () {
-                var testVal = 0xff;
-                expect(parseByteArrayToNumber([testVal])).to.equal(testVal);
-            });
+			it('should return value of first array element if given array with only one element', function() {
+				var testVal = 0xff;
+				expect(parseByteArrayToNumber([testVal])).to.equal(testVal);
+			});
 
-            it('should shift/add multiple elements by 8 bits', function () {
-                expect(parseByteArrayToNumber([0x1, 0x2])).to.equal(0x102);
-            });
-        });
+			it('should shift/add multiple elements by 8 bits', function() {
+				expect(parseByteArrayToNumber([0x1, 0x2])).to.equal(0x102);
+			});
+		});
 
-        describe('when "isVariable" flag is passed', function () {
+		describe('when "isVariable" flag is passed', function() {
 
-            it('should return value of first array element if given array with only one element', function () {
-                var testVal = 0xff;
-                expect(parseByteArrayToNumber([testVal]), true).to.equal(testVal);
-            });
+			it('should return value of first array element if given array with only one element', function() {
+				var testVal = 0xff;
+				expect(parseByteArrayToNumber([testVal]), true).to.equal(testVal);
+			});
 
-            it('should shift/add multiple elements', function () {
-                expect(parseByteArrayToNumber([0x7f, 0xff]), true).to.equal(0x7fff);
-            });
-        });
-    });
+			it('should shift/add multiple elements', function() {
+				expect(parseByteArrayToNumber([0x7f, 0xff]), true).to.equal(0x7fff);
+			});
+		});
+	});
 
-    describe('#parseStringFromRawChars', function () {
-        var parseStringFromRawChars = midiUtils.parseStringFromRawChars;
+	describe('#parseStringFromRawChars', function() {
+		// var parseStringFromRawChars = midiUtils.parseStringFromRawChars;
 
-        it('should convert a string of char bytes into a string');
+		it('should convert a string of char bytes into a string');
 
-        it('should convert an empty array into an empty string');
-    });
+		it('should convert an empty array into an empty string');
+	});
 
-    describe('#parseNextVariableChunk', function () {
-        var parseNextVariableChunk = midiUtils.parseNextVariableChunk;
+	describe('#parseNextVariableChunk', function() {
+		// var parseNextVariableChunk = midiUtils.parseNextVariableChunk;
 
-        it('should extract the ?? bytes from the given array');
+		it('should extract the ?? bytes from the given array');
 
-        it('should return full array if there is no ??');
-    });
+		it('should return full array if there is no ??');
+	});
 
-    describe('#generateMatcher', function () {
-        var generateMatcher = midiUtils.generateMatcher;
+	describe('#generateMatcher', function() {
+		// var generateMatcher = midiUtils.generateMatcher;
 
-        it('should correctly match an exact value');
+		it('should correctly match an exact value');
 
-        it('should correctly NOT match an invalid value');
-    });
+		it('should correctly NOT match an invalid value');
+	});
 
-    describe('#generateMaskMatcher', function () {
-       var generateMaskMatcher = midiUtils.generateMaskMatcher,
-           matcher = function () {},
-           testMask = NOTE_ON_MASK;
+	describe('#generateMaskMatcher', function() {
+		var generateMaskMatcher = midiUtils.generateMaskMatcher,
+			matcher = function() {};
 
-       beforeEach(function () {
-          matcher = generateMaskMatcher(NOTE_ON_MASK);
-       });
+		beforeEach(function() {
+			matcher = generateMaskMatcher(NOTE_ON_MASK);
+		});
 
-       it('should match an event that bitwise ands with the mask', function () {
-          // 0x91 is a "Chan 2 Note on" event
-          matcher(0x91).should.be.true;
-       });
+		it('should match an event that bitwise ands with the mask', function() {
+			// 0x91 is a "Chan 2 Note on" event
+			matcher(0x91).should.be.true;
+		});
 
-       it('should not match an event that does not bitwise and with the mask', function () {
-          matcher(0x51).should.be.false;
-       });
-    });
+		it('should not match an event that does not bitwise and with the mask', function() {
+			matcher(0x51).should.be.false;
+		});
+	});
 
-    describe('#isMetaEvent', function () {
-       var isMetaEvent = midiUtils.isMetaEvent;
+	describe('#isMetaEvent', function() {
+		// var isMetaEvent = midiUtils.isMetaEvent;
 
-       it('should reject an event below lower boundary');
-       it('should accept an event in the boundary');
-       it('should reject an event above upper boundary');
-    });
+		it('should reject an event below lower boundary');
+		it('should accept an event in the boundary');
+		it('should reject an event above upper boundary');
+	});
 
-    describe('#isSysexEvent', function () {
-       var isSysexEvent = midiUtils.isSysexEvent;
+	describe('#isSysexEvent', function() {
+		// var isSysexEvent = midiUtils.isSysexEvent;
 
-       it('should reject an event below lower boundary');
-       it('should accept an event in the boundary');
-       it('should reject an event above upper boundary');
-    });
+		it('should reject an event below lower boundary');
+		it('should accept an event in the boundary');
+		it('should reject an event above upper boundary');
+	});
 
-    describe('#isChannelEvent', function () {
-       var isChannelEvent = midiUtils.isChannelEvent;
+	describe('#isChannelEvent', function() {
+		// var isChannelEvent = midiUtils.isChannelEvent;
 
-       it('should reject an event below lower boundary');
-       it('should accept an event in the boundary');
-       it('should reject an event above upper boundary');
-    });
+		it('should reject an event below lower boundary');
+		it('should accept an event in the boundary');
+		it('should reject an event above upper boundary');
+	});
 
-    describe('#isNoteEvent', function () {
-       var isNoteEvent = midiUtils.isNoteEvent;
+	describe('#isNoteEvent', function() {
+		var isNoteEvent = midiUtils.isNoteEvent;
 
-       it('should not match an event below lower bountdary', function () {
-          isNoteEvent(0x7f).should.not.be.true;
-       });
+		it('should not match an event below lower bountdary', function() {
+			isNoteEvent(0x7f).should.not.be.true;
+		});
 
-       it('should match a note off lower bountdary event', function () {
-          isNoteEvent(0x80).should.be.true;
-       });
+		it('should match a note off lower bountdary event', function() {
+			isNoteEvent(0x80).should.be.true;
+		});
 
-       it('should match a note off upper bountdary event', function () {
-          isNoteEvent(0x8f).should.be.true;
-       });
+		it('should match a note off upper bountdary event', function() {
+			isNoteEvent(0x8f).should.be.true;
+		});
 
-       it('should match a note on lower bountdary event', function () {
-          isNoteEvent(0x90).should.be.true;
-       });
+		it('should match a note on lower bountdary event', function() {
+			isNoteEvent(0x90).should.be.true;
+		});
 
-       it('should match a note on upper bountdary event', function () {
-          isNoteEvent(0x9f).should.be.true;
-       });
+		it('should match a note on upper bountdary event', function() {
+			isNoteEvent(0x9f).should.be.true;
+		});
 
-       it('should not match an event above upper bountdary', function () {
-          isNoteEvent(0xa0).should.not.be.true;
-       });
-    });
+		it('should not match an event above upper bountdary', function() {
+			isNoteEvent(0xa0).should.not.be.true;
+		});
+	});
 
-    describe('#isValidEventCode', function () {
-       var isValidEventCode = midiUtils.isValidEventCode;
+	describe('#isValidEventCode', function() {
+		var isValidEventCode = midiUtils.isValidEventCode;
 
-       it('should not match an event below lower boundary', function () {
-          isValidEventCode(0x7f).should.not.be.true;
-       });
+		it('should not match an event below lower boundary', function() {
+			isValidEventCode(0x7f).should.not.be.true;
+		});
 
-       it('should match an event within boundary', function () {
-          isValidEventCode(0xa0).should.be.true;
-       });
+		it('should match an event within boundary', function() {
+			isValidEventCode(0xa0).should.be.true;
+		});
 
-       it('should not match an event above upper boundary', function () {
-          isValidEventCode(0x101).should.not.be.true;
-       });
-    });
+		it('should not match an event above upper boundary', function() {
+			isValidEventCode(0x101).should.not.be.true;
+		});
+	});
 });
+
