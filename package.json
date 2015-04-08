@@ -24,11 +24,15 @@
   "homepage": "https://github.com/edhille/func-midi-parser",
   "devDependencies": {
     "chai": "^1.9.2",
+    "gulp-spawn-mocha": "^2.0.1",
     "mocha": "^1.21.4",
     "sinon": "^1.10.3"
   },
   "dependencies": {
+    "del": "^1.1.1",
     "funtils": "0.0.1",
-    "gulp": "^3.8.11"
+    "gulp": "^3.8.11",
+    "gulp-rename": "^1.2.2",
+    "through2": "^0.6.3"
   }
 }

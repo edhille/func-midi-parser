@@ -1,0 +1,12 @@
+{
+	"node": true,
+	"freeze": true,
+	"quotmark": "single",
+	"eqeqeq": true,
+	"latedef": "nofunc",
+	"notypeof": true,
+	"singleGroups": true,
+	"undef": true,
+	"unused": true,
+	"proto": true
+}
