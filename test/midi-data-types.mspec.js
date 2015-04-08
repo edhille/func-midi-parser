@@ -1,6 +1,5 @@
-/* vim: set expandtab ts=3 sw=3: */
 /* jshint node: true, expr: true, es5: true */
-/* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true, xit: true */
+/* globals describe: true, beforeEach: true, it: true */
 'use strict';
 
 var chai = require('chai'),
@@ -176,11 +175,11 @@ describe('Midi Data Types', function () {
             });
 
             it('should have an instance', function () {
-                (metaEvent instanceof MidiMetaEvent);
+                expect(metaEvent).to.be.instanceof(MidiMetaEvent);
             });
 
             it('should be an instance of MidiEvent', function () {
-                (metaEvent instanceof MidiEvent);
+                expect(metaEvent).to.be.instanceof(MidiEvent);
             });
         });
     });
