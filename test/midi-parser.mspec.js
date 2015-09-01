@@ -65,6 +65,7 @@ describe('midiParser', function() {
       describe('construction', function () {
 
          it('should not throw an error starting with a valid Midi file', function () {
+            midiParser.parse(cloneArray(midiData));
             expect(function () {
                midiParser.parse(cloneArray(midiData));
             }).not.throw(Error);
@@ -113,7 +114,7 @@ describe('midiParser', function() {
 
                   it('should have a tempo event', function () {
                      midiTrack.events[0].subtype.should.equal('tempo');
-                     midiTrack.events[0].tempo.should.equal(1000000);
+                     midiTrack.events[0].microsecPerQn.should.equal(1000000);
                   });
 
                   it('should have a time signature event', function () {
@@ -201,7 +202,8 @@ describe('midiParser', function() {
       var midi;
 
       before(function(done) {
-         fs.readFile(__dirname + '/sounds/real-song.mid', function (err, data) {
+         // fs.readFile(__dirname + '/sounds/real-song.mid', function (err, data) {
+         fs.readFile(__dirname + '/../../midi-tester/public/audio/Vunderbar.mid', function (err, data) {
             if (err) throw new Error(err);
 
             midiData = new Uint8Array(data);
@@ -213,8 +215,8 @@ describe('midiParser', function() {
           midi = midiParser.parse(cloneArray(midiData));
       });
 
-      it('should have 11 tracks', function () {
-          midi.tracks.length.should.equal(11);
+      it('should have 13 tracks', function () {
+          midi.tracks.length.should.equal(13);
       });
 
       describe('tracks', function () {
@@ -251,10 +253,10 @@ describe('midiParser', function() {
             shouldHaveSameNumberOfOnAndOffEvents(tracks[4]);
          });
 
-         it('track five should have first note starting with a delta of 6576', function () {
+         it('track five should have first note starting with a delta of 32880', function () {
             var firstNoteOnEvent = tracks[4].events.filter(function (event) { return event instanceof MidiNoteOnEvent; })[0];
 
-            firstNoteOnEvent.delta.should.equal(6576);
+            firstNoteOnEvent.delta.should.equal(32880);
          });
 
          it('track five notes should indicate they are track 5', function () {
@@ -267,10 +269,10 @@ describe('midiParser', function() {
             shouldHaveSameNumberOfOnAndOffEvents(tracks[5]);
          });
 
-         it('track six should have first note starting with a delta of 288', function () {
+         it('track six should have first note starting with a delta of 175200', function () {
             var firstNoteOnEvent = tracks[5].events.filter(function (event) { return event instanceof MidiNoteOnEvent; })[0];
 
-            firstNoteOnEvent.delta.should.equal(288);
+            firstNoteOnEvent.delta.should.equal(175200);
          });
 
          it('track seven should have same number of note "on" and note "off" events', function () {

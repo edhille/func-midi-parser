@@ -2,10 +2,10 @@
 /* globals describe: true, beforeEach: true, it: true, Uint8Array: true */
 'use strict';
 
-var chai = require('chai'),
-	midiUtils = require('../lib/midi-utils.js'),
-	constants = require('../lib/midi-constants.js'),
-	NOTE_ON_MASK = constants.NOTE_ON_MASK;
+var chai = require('chai');
+var midiUtils = require('../lib/midi-utils.js');
+var constants = require('../lib/midi-constants.js');
+var NOTE_ON_MASK = constants.NOTE_ON_MASK;
 
 describe('midi utilities', function() {
 
@@ -17,8 +17,7 @@ describe('midi utilities', function() {
 		var toArr = midiUtils.toArr;
 
 		describe('with Uint8Array', function() {
-			var uint8Arr,
-				simpleArr;
+			var uint8Arr, simpleArr;
 
 			beforeEach(function() {
 				uint8Arr = new Uint8Array(2);
@@ -41,8 +40,7 @@ describe('midi utilities', function() {
 		});
 
 		describe('with empty Uint8Array', function() {
-			var uint8Arr,
-				simpleArr;
+			var uint8Arr, simpleArr;
 
 			beforeEach(function() {
 				uint8Arr = new Uint8Array();
@@ -65,9 +63,13 @@ describe('midi utilities', function() {
 	describe('#toHex', function() {
 		var toHex = midiUtils.toHex;
 
-		it('should convert any number to it\'s hex value');
+		it('should convert any number to it\'s hex value', function () {
+			expect(toHex(100)).to.equal('0x64');
+		});
 
-		it('should convert any non-number to 0x0');
+		it('should convert any non-number to 0x0', function () {
+			expect(toHex('foo')).to.equal('0x0');
+		});
 	});
 
 	describe('#parseByteArrayToNumber', function() {
@@ -106,11 +108,19 @@ describe('midi utilities', function() {
 	});
 
 	describe('#parseStringFromRawChars', function() {
-		// var parseStringFromRawChars = midiUtils.parseStringFromRawChars;
+		var parseStringFromRawChars = midiUtils.parseStringFromRawChars;
 
-		it('should convert a string of char bytes into a string');
+		it('should convert an array of char bytes into a string', function () {
+			expect(parseStringFromRawChars([102, 111, 111])).to.equal('foo');	
+		});
 
-		it('should convert an empty array into an empty string');
+		it('should throw if given empty arguments', function () {
+			expect(parseStringFromRawChars).to.throw(TypeError);
+		});
+
+		it('should convert an empty array into an empty string', function () {
+			expect(parseStringFromRawChars([])).to.equal('');
+		});
 	});
 
 	describe('#parseNextVariableChunk', function() {
@@ -130,8 +140,8 @@ describe('midi utilities', function() {
 	});
 
 	describe('#generateMaskMatcher', function() {
-		var generateMaskMatcher = midiUtils.generateMaskMatcher,
-			matcher = function() {};
+		var generateMaskMatcher = midiUtils.generateMaskMatcher;
+		var matcher = function() {};
 
 		beforeEach(function() {
 			matcher = generateMaskMatcher(NOTE_ON_MASK);
@@ -163,14 +173,20 @@ describe('midi utilities', function() {
 		it('should reject an event above upper boundary');
 	});
 
-	describe('#isChannelEvent', function() {
-		// var isChannelEvent = midiUtils.isChannelEvent;
+	describe('#isNoteOnEvent', function () {
 
-		it('should reject an event below lower boundary');
-		it('should accept an event in the boundary');
-		it('should reject an event above upper boundary');
+		it('should correctly identify a note on event');
+
+		it('should correctly reject a note off event');
 	});
 
+	describe('#isNoteOffEvent', function () {
+
+		it('should correctly identify a note off event');
+
+		it('should correctly reject a note on event');
+	});
+	
 	describe('#isNoteEvent', function() {
 		var isNoteEvent = midiUtils.isNoteEvent;
 
@@ -197,6 +213,46 @@ describe('midi utilities', function() {
 		it('should not match an event above upper bountdary', function() {
 			isNoteEvent(0xa0).should.not.be.true;
 		});
+	});
+
+	describe('#isPolyphonicAftertouchEvent', function () {
+
+		it('should correctly identify a polyphonic aftertouch event');
+
+		it('should correctly reject a non-polyphonic aftertouch event');
+	});
+
+	describe('#isControlChangeEvent', function () {
+
+		it('should correctly identify a control change event');
+
+		it('should correctly reject a non-control change event');
+	});
+
+	describe('#isChannelAftertouchEvent', function () {
+
+		it('should correctly identify a channel aftertouch event');
+
+		it('should correctly reject a non-channel aftertouch event');
+	});
+
+	describe('#isPitchWheelEvent', function () {
+
+		it('should correctly identify a pitch wheel event');
+
+		it('should correctly reject a non-pitch wheel event');
+	});
+
+	describe('#isChannelEvent', function() {
+		// var isChannelEvent = midiUtils.isChannelEvent;
+
+		it('should reject an event below lower boundary');
+		it('should accept an event in the boundary');
+		it('should reject an event above upper boundary');
+	});
+
+	describe('#isVariableEvent', function () {
+		
 	});
 
 	describe('#isValidEventCode', function() {

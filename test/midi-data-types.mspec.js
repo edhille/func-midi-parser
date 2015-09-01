@@ -207,7 +207,7 @@ describe('Midi Data Types', function () {
                 metaTempoEvent = new MidiMetaTempoEvent({
                     code: 0xFF,
                     subtype: 0x51,
-					tempo: 0x1020304
+					microsecPerQn: 0x1020304
                 });
             });
 
@@ -219,8 +219,8 @@ describe('Midi Data Types', function () {
                 (metaTempoEvent instanceof MidiMetaEvent).should.be.true;
             });
 
-            it('should have a tempo property calculated from "dataBytes"', function () {
-                metaTempoEvent.tempo.should.equal(0x1020304);
+            it('should have a microsecPerQn property calculated from "dataBytes"', function () {
+                metaTempoEvent.microsecPerQn.should.equal(0x1020304);
             });
         });
     });
@@ -279,7 +279,7 @@ describe('Midi Data Types', function () {
              controllerEvent = new MidiChannelEvent({
                 type: 'meta',
                 subtype: 'controller',
-                channel: 4,
+                eventCode: 0x84,
                 dataBytes: [0x0, 0x7f]
              });
           });
@@ -294,14 +294,6 @@ describe('Midi Data Types', function () {
 
           it('should have the correct channel', function () {
              controllerEvent.channel.should.equal(4);
-          });
-
-          it('should have the correct controllerType', function () {
-             controllerEvent.controllerType.should.equal(0x0);
-          });
-
-          it('should have the correct value', function () {
-             controllerEvent.value.should.equal(0x7f);
           });
        });
     });
