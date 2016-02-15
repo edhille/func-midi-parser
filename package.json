@@ -4,7 +4,8 @@
   "description": "A functional-based midi parsing library",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --bail test/**/*.mspec.js"
+    "test": "npm run lint && mocha --bail test/**/*.mspec.js",
+    "lint": "./node_modules/eslint/bin/eslint.js src"
   },
   "repository": {
     "type": "git",
@@ -24,12 +25,14 @@
   "homepage": "https://github.com/edhille/func-midi-parser",
   "devDependencies": {
     "chai": "^1.9.2",
+    "eslint": "^2.1.0",
     "gulp-spawn-mocha": "^2.0.1",
     "mocha": "^1.21.4",
     "sinon": "^1.10.3"
   },
   "dependencies": {
     "del": "^1.1.1",
+    "fadt": "^1.1.0",
     "funtils": "0.0.1",
     "gulp": "^3.8.11",
     "gulp-rename": "^1.2.2",
