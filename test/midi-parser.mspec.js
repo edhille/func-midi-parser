@@ -1,4 +1,3 @@
-/* jshint expr: true */
 /* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true */
 'use strict';
 
@@ -203,7 +202,7 @@ describe('midiParser', function() {
 
       before(function(done) {
          // fs.readFile(__dirname + '/sounds/real-song.mid', function (err, data) {
-         fs.readFile(__dirname + '/../../midi-tester/public/audio/Vunderbar.mid', function (err, data) {
+         fs.readFile(__dirname + '/sounds/Vunderbar.mid', function (err, data) {
             if (err) throw new Error(err);
 
             midiData = new Uint8Array(data);
