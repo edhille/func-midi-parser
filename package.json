@@ -25,18 +25,18 @@
   },
   "homepage": "https://github.com/edhille/func-midi-parser",
   "devDependencies": {
-    "chai": "^1.9.2",
-    "del": "^1.1.1",
+    "chai": "^3.5.0",
+    "del": "^2.2.0",
     "eslint": "^2.1.0",
     "gulp": "^3.8.11",
     "gulp-rename": "^1.2.2",
     "gulp-spawn-mocha": "^2.0.1",
-    "mocha": "^1.21.4",
+    "mocha": "^2.4.5",
     "sinon": "^1.10.3",
-    "through2": "^0.6.3"
+    "through2": "^2.0.1"
   },
   "dependencies": {
     "fadt": "^1.1.0",
-    "funtils": "0.0.1"
+    "funtils": "^0.3.1"
   }
 }
