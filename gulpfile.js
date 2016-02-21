@@ -1,4 +1,4 @@
-/* globals Uint8Array */
+/* globals Uint8Array, Buffer */
 'use strict';
 
 var gulp = require('gulp');
@@ -8,9 +8,7 @@ var midiParser = require('./index');
 
 function clean(cb) { 
 	var del = require('del');
-	
 	del(['./test/sounds/parsed-midi.json']);
-
 	cb(null);
 }
 
@@ -43,6 +41,7 @@ function exportMidi() {
 }
 
 function logError(err) {
+	/* eslint no-console: [0] */
 	console.error('ERROR:');
 	console.error(err);
 }
@@ -59,6 +58,5 @@ function coverage(cb) {
 }
 
 gulp.task('clean', clean);
-gulp.task('test', ['clean'], test);
 gulp.task('coverage', ['clean'], coverage);
 gulp.task('export-midi', ['clean'], exportMidi);
