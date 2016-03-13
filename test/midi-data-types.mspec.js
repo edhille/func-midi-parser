@@ -110,7 +110,7 @@ describe('Midi Data Types', function () {
 
 			describe('when name is given', function () {
 				beforeEach(function () {
-					track = new MidiTrack([], 'FOO');
+					track = new MidiTrack({ events: [], name: 'FOO' });
 				});
 
 				it('should have a "name" property', function () {
@@ -230,13 +230,6 @@ describe('Midi Data Types', function () {
 		var metaTimeSignatureEvent = null;
 
 		describe('error cases', function () {
-
-			it('should throw an error if given no parameters', function () {
-				expect(function () {
-					new MidiMetaTimeSignatureEvent();
-				}).to.throw(TypeError);
-			});
-
 			it('should throw an error if you try to modify the "timeSignature"', function () {
 				expect(function () {
 					metaTimeSignatureEvent = new MidiMetaTimeSignatureEvent({});
