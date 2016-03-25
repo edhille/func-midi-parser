@@ -6,6 +6,147 @@ A simple, functional-based midi parsing library
 
 ## API Reference
 
+<a name="module_midiParser"></a>
+## midiParser
+<a name="module_midiParser..parse"></a>
+### midiParser~parse(midiBytes) ⇒ <code>Midi</code>
+parses given array of unsigned 8-bit integers into Midi data type
+
+**Kind**: inner method of <code>[midiParser](#module_midiParser)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| midiBytes | <code>array</code> | array of unsinged 8-bit integers representing raw midi data |
+
+
+
+<a name="module_MidiConstants"></a>
+## MidiConstants
+
+* [MidiConstants](#module_MidiConstants)
+    * [~BYTE_MASK](#module_MidiConstants..BYTE_MASK) : <code>number</code>
+    * [~HIGHBIT_MASK](#module_MidiConstants..HIGHBIT_MASK) : <code>number</code>
+    * [~SYSEX_EVENT_MASK](#module_MidiConstants..SYSEX_EVENT_MASK) : <code>number</code>
+    * [~NOTE_ON_MASK](#module_MidiConstants..NOTE_ON_MASK) : <code>number</code>
+    * [~NOTE_OFF_MASK](#module_MidiConstants..NOTE_OFF_MASK) : <code>number</code>
+    * [~PROGRAM_MASK](#module_MidiConstants..PROGRAM_MASK) : <code>number</code>
+    * [~CHANNEL_MASK](#module_MidiConstants..CHANNEL_MASK) : <code>number</code>
+    * [~CONTROL_MASK](#module_MidiConstants..CONTROL_MASK) : <code>number</code>
+    * [~META_EVENT](#module_MidiConstants..META_EVENT) : <code>number</code>
+    * [~SEQUENCE_META_EVENT](#module_MidiConstants..SEQUENCE_META_EVENT) : <code>number</code>
+    * [~TEXT_META_EVENT](#module_MidiConstants..TEXT_META_EVENT) : <code>number</code>
+    * [~COPYRIGHT_META_EVENT](#module_MidiConstants..COPYRIGHT_META_EVENT) : <code>number</code>
+    * [~TRACK_NAME_META_EVENT](#module_MidiConstants..TRACK_NAME_META_EVENT) : <code>number</code>
+    * [~INST_NAME_META_EVENT](#module_MidiConstants..INST_NAME_META_EVENT) : <code>number</code>
+    * [~LYRIC_TEXT_META_EVENT](#module_MidiConstants..LYRIC_TEXT_META_EVENT) : <code>number</code>
+    * [~MARKER_TEXT_META_EVENT](#module_MidiConstants..MARKER_TEXT_META_EVENT) : <code>number</code>
+    * [~CUE_POINT_META_EVENT](#module_MidiConstants..CUE_POINT_META_EVENT) : <code>number</code>
+    * [~CHANNEL_PREFIX_ASSIGNMENT_META_EVENT](#module_MidiConstants..CHANNEL_PREFIX_ASSIGNMENT_META_EVENT) : <code>number</code>
+    * [~END_OF_TRACK_META_EVENT](#module_MidiConstants..END_OF_TRACK_META_EVENT) : <code>number</code>
+    * [~TEMPO_META_EVENT](#module_MidiConstants..TEMPO_META_EVENT) : <code>number</code>
+    * [~SMPTE_OFFSET_META_EVENT](#module_MidiConstants..SMPTE_OFFSET_META_EVENT) : <code>number</code>
+    * [~TIME_SIG_META_EVENT](#module_MidiConstants..TIME_SIG_META_EVENT) : <code>number</code>
+    * [~KEY_SIGNATURE_META_EVENT](#module_MidiConstants..KEY_SIGNATURE_META_EVENT) : <code>number</code>
+    * [~SEQUENCER_SPECIFIC_META_EVENT](#module_MidiConstants..SEQUENCER_SPECIFIC_META_EVENT) : <code>number</code>
+
+<a name="module_MidiConstants..BYTE_MASK"></a>
+### MidiConstants~BYTE_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>128</code>  
+<a name="module_MidiConstants..HIGHBIT_MASK"></a>
+### MidiConstants~HIGHBIT_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>127</code>  
+<a name="module_MidiConstants..SYSEX_EVENT_MASK"></a>
+### MidiConstants~SYSEX_EVENT_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>240</code>  
+<a name="module_MidiConstants..NOTE_ON_MASK"></a>
+### MidiConstants~NOTE_ON_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>144</code>  
+<a name="module_MidiConstants..NOTE_OFF_MASK"></a>
+### MidiConstants~NOTE_OFF_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>128</code>  
+<a name="module_MidiConstants..PROGRAM_MASK"></a>
+### MidiConstants~PROGRAM_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>192</code>  
+<a name="module_MidiConstants..CHANNEL_MASK"></a>
+### MidiConstants~CHANNEL_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>208</code>  
+<a name="module_MidiConstants..CONTROL_MASK"></a>
+### MidiConstants~CONTROL_MASK : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>176</code>  
+<a name="module_MidiConstants..META_EVENT"></a>
+### MidiConstants~META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>255</code>  
+<a name="module_MidiConstants..SEQUENCE_META_EVENT"></a>
+### MidiConstants~SEQUENCE_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>0</code>  
+<a name="module_MidiConstants..TEXT_META_EVENT"></a>
+### MidiConstants~TEXT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>1</code>  
+<a name="module_MidiConstants..COPYRIGHT_META_EVENT"></a>
+### MidiConstants~COPYRIGHT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>2</code>  
+<a name="module_MidiConstants..TRACK_NAME_META_EVENT"></a>
+### MidiConstants~TRACK_NAME_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>3</code>  
+<a name="module_MidiConstants..INST_NAME_META_EVENT"></a>
+### MidiConstants~INST_NAME_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>4</code>  
+<a name="module_MidiConstants..LYRIC_TEXT_META_EVENT"></a>
+### MidiConstants~LYRIC_TEXT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>5</code>  
+<a name="module_MidiConstants..MARKER_TEXT_META_EVENT"></a>
+### MidiConstants~MARKER_TEXT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>6</code>  
+<a name="module_MidiConstants..CUE_POINT_META_EVENT"></a>
+### MidiConstants~CUE_POINT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>7</code>  
+<a name="module_MidiConstants..CHANNEL_PREFIX_ASSIGNMENT_META_EVENT"></a>
+### MidiConstants~CHANNEL_PREFIX_ASSIGNMENT_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>32</code>  
+<a name="module_MidiConstants..END_OF_TRACK_META_EVENT"></a>
+### MidiConstants~END_OF_TRACK_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>47</code>  
+<a name="module_MidiConstants..TEMPO_META_EVENT"></a>
+### MidiConstants~TEMPO_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>81</code>  
+<a name="module_MidiConstants..SMPTE_OFFSET_META_EVENT"></a>
+### MidiConstants~SMPTE_OFFSET_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>84</code>  
+<a name="module_MidiConstants..TIME_SIG_META_EVENT"></a>
+### MidiConstants~TIME_SIG_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>88</code>  
+<a name="module_MidiConstants..KEY_SIGNATURE_META_EVENT"></a>
+### MidiConstants~KEY_SIGNATURE_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>89</code>  
+<a name="module_MidiConstants..SEQUENCER_SPECIFIC_META_EVENT"></a>
+### MidiConstants~SEQUENCER_SPECIFIC_META_EVENT : <code>number</code>
+**Kind**: inner constant of <code>[MidiConstants](#module_MidiConstants)</code>  
+**Default**: <code>127</code>  
+
+
 <a name="module_MidiTypes"></a>
 ## MidiTypes
 
