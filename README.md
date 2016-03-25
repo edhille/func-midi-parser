@@ -18,6 +18,42 @@ A simple, functional-based midi parsing library
         * [new MidiTrack(params)](#new_module_MidiTypes..MidiTrack_new)
     * [~MidiEvent](#module_MidiTypes..MidiEvent)
         * [new MidiEvent(params)](#new_module_MidiTypes..MidiEvent_new)
+    * [~MidiMetaEvent](#module_MidiTypes..MidiMetaEvent)
+        * [new MidiMetaEvent(params)](#new_module_MidiTypes..MidiMetaEvent_new)
+    * [~MidiMetaTempoEvent](#module_MidiTypes..MidiMetaTempoEvent)
+        * [new MidiMetaTempoEvent(params)](#new_module_MidiTypes..MidiMetaTempoEvent_new)
+    * [~MidiMetaTimeSignatureEvent](#module_MidiTypes..MidiMetaTimeSignatureEvent)
+        * [new MidiMetaTimeSignatureEvent(params)](#new_module_MidiTypes..MidiMetaTimeSignatureEvent_new)
+    * [~MidiMetaInstrumentNameEvent](#module_MidiTypes..MidiMetaInstrumentNameEvent)
+        * [new MidiMetaInstrumentNameEvent(params)](#new_module_MidiTypes..MidiMetaInstrumentNameEvent_new)
+    * [~MidiMetaKeySignatureEvent](#module_MidiTypes..MidiMetaKeySignatureEvent)
+        * [new MidiMetaKeySignatureEvent(params)](#new_module_MidiTypes..MidiMetaKeySignatureEvent_new)
+    * [~MidiMetaSmptOffsetEvent](#module_MidiTypes..MidiMetaSmptOffsetEvent)
+        * [new MidiMetaSmptOffsetEvent(params)](#new_module_MidiTypes..MidiMetaSmptOffsetEvent_new)
+    * [~MidiMetaTrackNameEvent](#module_MidiTypes..MidiMetaTrackNameEvent)
+        * [new MidiMetaTrackNameEvent(params)](#new_module_MidiTypes..MidiMetaTrackNameEvent_new)
+    * [~MidiMetaEndOfTrack](#module_MidiTypes..MidiMetaEndOfTrack)
+        * [new MidiMetaEndOfTrack()](#new_module_MidiTypes..MidiMetaEndOfTrack_new)
+    * [~MidiSystemEvent](#module_MidiTypes..MidiSystemEvent)
+        * [new MidiSystemEvent()](#new_module_MidiTypes..MidiSystemEvent_new)
+    * [~MidiChannelEvent](#module_MidiTypes..MidiChannelEvent)
+        * [new MidiChannelEvent(params)](#new_module_MidiTypes..MidiChannelEvent_new)
+    * [~MidiPolyphonicAftertouchEvent](#module_MidiTypes..MidiPolyphonicAftertouchEvent)
+        * [new MidiPolyphonicAftertouchEvent(params)](#new_module_MidiTypes..MidiPolyphonicAftertouchEvent_new)
+    * [~MidiControlChangeEvent](#module_MidiTypes..MidiControlChangeEvent)
+        * [new MidiControlChangeEvent(params)](#new_module_MidiTypes..MidiControlChangeEvent_new)
+    * [~MidiProgramChangeEvent](#module_MidiTypes..MidiProgramChangeEvent)
+        * [new MidiProgramChangeEvent(params)](#new_module_MidiTypes..MidiProgramChangeEvent_new)
+    * [~MidiChannelAftertouchEvent](#module_MidiTypes..MidiChannelAftertouchEvent)
+        * [new MidiChannelAftertouchEvent(params)](#new_module_MidiTypes..MidiChannelAftertouchEvent_new)
+    * [~MidiPitchWheelEvent](#module_MidiTypes..MidiPitchWheelEvent)
+        * [new MidiPitchWheelEvent(params)](#new_module_MidiTypes..MidiPitchWheelEvent_new)
+    * [~MidiNoteEvent](#module_MidiTypes..MidiNoteEvent)
+        * [new MidiNoteEvent(params)](#new_module_MidiTypes..MidiNoteEvent_new)
+    * [~MidiNoteOnEvent](#module_MidiTypes..MidiNoteOnEvent)
+        * [new MidiNoteOnEvent()](#new_module_MidiTypes..MidiNoteOnEvent_new)
+    * [~MidiNoteOffEvent](#module_MidiTypes..MidiNoteOffEvent)
+        * [new MidiNoteOffEvent()](#new_module_MidiTypes..MidiNoteOffEvent_new)
 
 <a name="module_MidiTypes..Midi"></a>
 ### MidiTypes~Midi
@@ -83,4 +119,238 @@ Abstract midi event class
 | params.track | <code>number</code> |  | the index for the track this event belongs to |
 | [params.delta] | <code>number</code> | <code>0</code> | delta offset in ??? (microseconds or milliseconds) from previous event |
 
+<a name="module_MidiTypes..MidiMetaEvent"></a>
+### MidiTypes~MidiMetaEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaEvent_new"></a>
+#### new MidiMetaEvent(params)
+Abstract Midi meta event
+
+**Returns**: MidiMetaEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.subtype | <code>string</code> | the type of meta event (i.e. "tempo", "time_signature", etc.) |
+
+<a name="module_MidiTypes..MidiMetaTempoEvent"></a>
+### MidiTypes~MidiMetaTempoEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaTempoEvent_new"></a>
+#### new MidiMetaTempoEvent(params)
+Meta tempo event
+
+**Returns**: MidiMetaTempoEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.microsecPerQn | <code>number</code> | microseconds per quarter note |
+
+<a name="module_MidiTypes..MidiMetaTimeSignatureEvent"></a>
+### MidiTypes~MidiMetaTimeSignatureEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaTimeSignatureEvent_new"></a>
+#### new MidiMetaTimeSignatureEvent(params)
+Meta time signature event. Expects time signature to be
+             represented by two numbers that take the form: nn/2^dd
+
+**Returns**: MidiMetaTimeSignature  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.numerator | <code>number</code> | numerator for time signature |
+| params.denominator | <code>number</code> | exponent for denominator of time signature |
+| params.metronomeClicksPerTick | <code>number</code> | number of metronome clicks per midi tick |
+| params.thirtySecondNotesPerBeat | <code>number</code> | number of 1/32 notes per beat |
+
+<a name="module_MidiTypes..MidiMetaInstrumentNameEvent"></a>
+### MidiTypes~MidiMetaInstrumentNameEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaInstrumentNameEvent_new"></a>
+#### new MidiMetaInstrumentNameEvent(params)
+Midi meta instrument name event
+
+**Returns**: MidiMetaInstrumentNameEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+| params.name | <code>string</code> | name of instrument used |
+
+<a name="module_MidiTypes..MidiMetaKeySignatureEvent"></a>
+### MidiTypes~MidiMetaKeySignatureEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaKeySignatureEvent_new"></a>
+#### new MidiMetaKeySignatureEvent(params)
+Midi meta key signature event
+
+**Returns**: MidiMetaKeySignatureEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.sf | <code>number</code> | number of sharps/flats (-7 <= sf <= 7) |
+| params.mi | <code>number</code> | major (0) or minor (1) |
+
+<a name="module_MidiTypes..MidiMetaSmptOffsetEvent"></a>
+### MidiTypes~MidiMetaSmptOffsetEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaSmptOffsetEvent_new"></a>
+#### new MidiMetaSmptOffsetEvent(params)
+Midi meta smpte offset event
+
+**Returns**: MidiMeatSmpteOffsetEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.frameRate | <code>number</code> | top two bits define the frame rate in frames per second. If those bits are "00" (0 decimal), the frame rate is 24 frames per second. If those bits are "01" (1 decimal), the frame rate is 25 frames per second. If the bits are "10" (2 decimal), the frame rate is "drop 30" or 29.97 frames per second. If the top two bits are "11", then the frame rate is 30 frames per second. The six remaining bits define the hours of the SMPTE time (0-23). |
+| params.min | <code>number</code> | minutes in offset (0-59) |
+| params.sec | <code>number</code> | seconds in offset (0-59) |
+| params.frames | <code>number</code> | depends upon framerate |
+| params.subframes | <code>number</code> | 0-99 |
+
+<a name="module_MidiTypes..MidiMetaTrackNameEvent"></a>
+### MidiTypes~MidiMetaTrackNameEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaTrackNameEvent_new"></a>
+#### new MidiMetaTrackNameEvent(params)
+Midi meta track name event
+
+**Returns**: MidiMetaTrackNameEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.name | <code>string</code> | name of the track |
+
+<a name="module_MidiTypes..MidiMetaEndOfTrack"></a>
+### MidiTypes~MidiMetaEndOfTrack
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiMetaEndOfTrack_new"></a>
+#### new MidiMetaEndOfTrack()
+Midi meta end of track event
+
+**Returns**: MidiMetaEndOfTrackEvent  
+<a name="module_MidiTypes..MidiSystemEvent"></a>
+### MidiTypes~MidiSystemEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiSystemEvent_new"></a>
+#### new MidiSystemEvent()
+Abstract Midi system event
+
+**Returns**: MidiSystemEvent  
+<a name="module_MidiTypes..MidiChannelEvent"></a>
+### MidiTypes~MidiChannelEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiChannelEvent_new"></a>
+#### new MidiChannelEvent(params)
+Abstract Midi channel event
+
+**Returns**: MidiChannelEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | properties to set |
+| params.eventCode | <code>number</code> | hex value for the event code (0x80-0xEF) |
+
+<a name="module_MidiTypes..MidiPolyphonicAftertouchEvent"></a>
+### MidiTypes~MidiPolyphonicAftertouchEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiPolyphonicAftertouchEvent_new"></a>
+#### new MidiPolyphonicAftertouchEvent(params)
+polyphonic aftertouch event
+
+**Returns**: MidiPolyphonicAftertouchEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+
+<a name="module_MidiTypes..MidiControlChangeEvent"></a>
+### MidiTypes~MidiControlChangeEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiControlChangeEvent_new"></a>
+#### new MidiControlChangeEvent(params)
+control change event
+
+**Returns**: MidiControlChangeEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+
+<a name="module_MidiTypes..MidiProgramChangeEvent"></a>
+### MidiTypes~MidiProgramChangeEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiProgramChangeEvent_new"></a>
+#### new MidiProgramChangeEvent(params)
+NOT YET IMPLEMENTED
+
+**Returns**: MidiProgramChangeEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+
+<a name="module_MidiTypes..MidiChannelAftertouchEvent"></a>
+### MidiTypes~MidiChannelAftertouchEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiChannelAftertouchEvent_new"></a>
+#### new MidiChannelAftertouchEvent(params)
+NOT YET IMPLEMENTED
+
+**Returns**: MidiChannelAftertouchEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+
+<a name="module_MidiTypes..MidiPitchWheelEvent"></a>
+### MidiTypes~MidiPitchWheelEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiPitchWheelEvent_new"></a>
+#### new MidiPitchWheelEvent(params)
+NOT YET IMPLEMENTED
+
+**Returns**: MidiPitchWheelEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+
+<a name="module_MidiTypes..MidiNoteEvent"></a>
+### MidiTypes~MidiNoteEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiNoteEvent_new"></a>
+#### new MidiNoteEvent(params)
+Abstract note event
+
+**Returns**: MidiNoteEvent  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| params | <code>object</code> | proprties to set |
+| params.note | <code>number</code> | note (0-255) |
+| params.velocity | <code>number</code> | velocity (0-127) |
+| params.length | <code>number</code> | length in ms |
+
+<a name="module_MidiTypes..MidiNoteOnEvent"></a>
+### MidiTypes~MidiNoteOnEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiNoteOnEvent_new"></a>
+#### new MidiNoteOnEvent()
+note on event
+
+**Returns**: MidiNoteOnEvent  
+<a name="module_MidiTypes..MidiNoteOffEvent"></a>
+### MidiTypes~MidiNoteOffEvent
+**Kind**: inner class of <code>[MidiTypes](#module_MidiTypes)</code>  
+<a name="new_module_MidiTypes..MidiNoteOffEvent_new"></a>
+#### new MidiNoteOffEvent()
+note off event
+
+**Returns**: MidiNoteOffEvent  
 
