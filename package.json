@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "preinstall": "ln -s ./scripts/commit-msg ./.git/hooks/commit-msg",
+    "preinstall": "if test -d ./.git && test ! -h ./.git/hooks/commit-msg; then ln -s ./scripts/commit-msg ./.git/hooks/commit-msg; fi;",
     "test": "npm run lint && mocha --bail test/**/*.mspec.js",
     "lint": "./node_modules/eslint/bin/eslint.js src",
     "clean": "rm -Rf ./coverage",
@@ -42,7 +42,7 @@
     "sinon": "^1.10.3"
   },
   "dependencies": {
-    "fadt": "^2.1.0",
+    "fadt": "^2.2.2",
     "funtils": "^0.4.0"
   }
 }
