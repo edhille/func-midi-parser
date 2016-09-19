@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/edhille/func-midi-parser.svg?branch=master)](https://travis-ci.org/edhille/func-midi-parser)
 [![Coverage Status](https://coveralls.io/repos/github/edhille/func-midi-parser/badge.svg?branch=master)](https://coveralls.io/github/edhille/func-midi-parser?branch=master)
+[![Dependencies Status](https://david-dm.org/edhille/func-midi-parser.svg)](https://david-dm.org/edhille/func-midi-parser.svg)
 
 A simple, functional-based midi parsing library
 
