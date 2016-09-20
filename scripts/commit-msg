@@ -8,6 +8,10 @@ then
 		git status -s
 		exit 1
 	fi
+elif npm run check-deps >/dev/null 2>&1
+then
+	echo 'You have out-of-date dependencies that should be updated'
+	exit 1
 else
 	exit 1
 fi
