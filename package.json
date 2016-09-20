@@ -14,7 +14,7 @@
     "local-coverage": "npm run clean && ./node_modules/istanbul/lib/cli.js cover _mocha test/**.mspec.js",
     "ci-coverage": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
     "doc": "./node_modules/jsdoc-to-markdown/bin/cli.js --template jsdoc.template.hbs lib/**/*.js > README.md",
-    "check-deps": "./node_modules/npm-check-updates/bin/ncu",
+    "check-deps": "./node_modules/npm-check-updates/bin/ncu -e 2",
     "update-deps": "./node_modules/npm-check-updates/bin/ncu -u"
   },
   "repository": {
