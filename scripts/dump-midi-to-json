@@ -1,0 +1,33 @@
+#! /usr/bin/env node
+/* eslint node: true */
+
+const fs = require('fs');
+const path = require('path');
+const midiParser = require('../index.js');
+
+const infile = process.argv[2];
+const outfile = process.argv[3] || path.join([__dirname, '..', 'test', 'sounds', 'midi-debug.json']);
+
+fs.readFile(infile, (err, data) => {
+  if (err) throw err;
+
+  const bytes = new Uint8Array(data.length);
+
+  for (let i = 0; i < bytes.length; ++i) {
+    bytes[i] = data.readUInt8(i);
+  }
+
+  const debugOutput = new Buffer(JSON.stringify(midiParser.parse(bytes)));
+
+  fs.open(outfile, 'w', (err, fd) => {
+    if (err) throw err;
+
+    fs.writeFile(fd, debugOutput, (err) => {
+      if (err) {
+        console.error(`Unable to write debug output ${err}`);
+      } else {
+        console.log(`Wrote debug output to ${outfile}`);
+      } 
+    });
+  });
+});

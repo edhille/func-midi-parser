@@ -19,3 +19,4 @@ Session.vim
 coverage/
 
 # something else
+test/sounds/midi-debug.json
