@@ -156,6 +156,177 @@ describe('midiParser', () => {
 							});
 
 							it('should track the length of a note', () => {
+								const onNotes = events.filter((event) => event instanceof MidiNoteOnEvent );
+
+								onNotes.forEach((event) => {
+									// NOTE: if song is 60bpm, that corresponds to
+									//          - tempo = 1,000,000
+									//          - timeDivision = 96
+									//          - noteLength (in midi ticks) = 48
+									//
+									//       60,000,000 / 1,000,000 = 60 (quarter notes per minute, aka 60bpm)
+									//       1,000,000 / 96 = 10,416.6667 (microseconds per tick)
+									//       10,416.6667 * 24 = 250,000 (microseconds between note start)
+									//       250,000 / 1,000 = 250 (milliseconds between previous note start)
+									//
+									//       250ms is length of 16th note when tempo is 60bpm
+
+									event.length.should.equal(24);
+								});
+							});
+
+							it('TODO: more events....');
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('parsing valid midi with marker', () => {
+
+		before((done) => {
+			fs.readFile(__dirname + '/sounds/MIDIOkFormat1-marker.mid', (err, data) => {
+				if (err) throw new Error(err);
+
+				midiData = new Uint8Array(data);
+				done();
+			});
+		});
+
+		describe('construction', () => {
+
+			it('should not throw an error starting with a valid Midi file', function () {
+				midiParser.parse(cloneArray(midiData));
+				expect(() => midiParser.parse(cloneArray(midiData)) ).not.throw(Error);
+			});
+
+			describe('default construction', () => {
+
+				let midi;
+
+				beforeEach(() => midi = midiParser.parse(cloneArray(midiData)) );
+
+				afterEach(() => midi = null );
+
+				it('should have a valid number of tracks', () => {
+					midi.tracks.length.should.equal(midi.header.trackCount);
+				});
+
+				it('should have a valid time division', () => {
+					midi.header.timeDivision.should.equal(480);
+				});
+
+				it('should have a valid number of frames per second', () => {
+					midi.header.isFramesPerSecond.should.be.true;
+				});
+
+				describe('MidiTrack', () => {
+					let midiTrack;
+
+					describe('Tempo', () => {
+
+						beforeEach(() => midiTrack = midi.tracks[0] );
+
+						afterEach(() => midiTrack = null );
+
+						it('should have 6 events', () => {
+							midiTrack.events.length.should.equal(6);
+						});
+
+						it('should have a time signature event', () => {
+							const {
+								subtype,
+								timeSignature: {
+									numerator,
+									denominator,
+									metronomeClicksPerTick,
+									thirtySecondNotesPerBeat
+								}
+							} = midiTrack.events[0];
+
+							subtype.should.equal('time_signature');
+							numerator.should.equal(4);
+							denominator.should.equal(4);
+							metronomeClicksPerTick.should.equal(24);
+							thirtySecondNotesPerBeat.should.equal(8);
+						});
+
+						it('should have a key signature event', () => {
+							const {
+								subtype,
+								sf,
+								mi
+							} = midiTrack.events[1];
+
+							subtype.should.equal('key_signature');
+							sf.should.equal(0);
+							expect(mi).to.be.undefined;
+						});
+
+						it('should have a marker event', () => {
+							const {
+								subtype,
+								marker	
+							} = midiTrack.events[2];
+
+							subtype.should.equal('marker');
+							marker.should.equal('TEST MARKER');
+						});
+
+						it('should have smpte offset event', () => {
+							const {
+								subtype,
+								frameRate,
+								min,
+								sec,
+								frames,
+								subframes
+							} = midiTrack.events[3];
+
+							subtype.should.equal('smpte_offset');
+							frameRate.should.equal(32);
+							min.should.equal(0);
+							sec.should.equal(0);
+							frames.should.equal(0);
+							subframes.should.equal(0);
+						});
+
+						it('should have a tempo event', () => {
+							const {
+								subtype,
+								microsecPerQn
+							} = midiTrack.events[4];
+
+							subtype.should.equal('tempo');
+							microsecPerQn.should.equal(500000);
+						});
+
+						it('should have an end event', () => {
+							midiTrack.events[5].subtype.should.equal('end');
+						});
+					});
+
+					describe('Instrument', () => {
+
+						beforeEach(() => {
+							midiTrack = midi.tracks[1]; // bass-drum, half-note track
+						});
+
+						afterEach(() => midiTrack = null );
+
+						it('should have an instrument name', () =>{
+							midiTrack.name.should.equal('80s FM Piano');
+						});
+
+						describe('Events', () => {
+							let events;
+
+							beforeEach(() => events = midiTrack.events );
+
+							afterEach(() => events = null );
+
+							it('should have six events', () => {
 								// 1 instrument-name
 								// 2 note-on
 								// 2 note-off
