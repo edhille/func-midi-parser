@@ -1,35 +1,31 @@
 /* globals describe: true, beforeEach: true, it: true */
 'use strict';
 
-var chai = require('chai');
-var MidiDataTypes = require('../lib/data-types.js');
+const chai = require('chai');
+const MidiDataTypes = require('../lib/data-types.js');
 
-describe('Midi Data Types', function () {
+describe('Midi Data Types', () => {
 
-	var expect = chai.expect;
+	const expect = chai.expect;
 
 	chai.should();
 
-	describe('Midi', function() {
-		var Midi = MidiDataTypes.Midi;
-		var midi = null;
+	describe('Midi', () => {
+		const Midi = MidiDataTypes.Midi;
+		let midi = null;
 
-		describe('error cases', function () {
+		describe('error cases', () => {
 
-			beforeEach(function () {
+			beforeEach(() => {
 				midi = new Midi({});
 			});
 
-			it('should throw an error if you try to modify it\'s header property', function () {
-				expect(function () {
-					midi.header = 'FAIL';
-				}).to.throw(TypeError);
+			it('should throw an error if you try to modify it\'s header property', () => {
+				expect(() => midi.header = 'FAIL' ).to.throw(TypeError);
 			});
 
-			it('should throw an error if you try to modify it\'s tracks property', function () {
-				expect(function () {
-					midi.tracks = 'FAIL';
-				}).to.throw(TypeError);
+			it('should throw an error if you try to modify it\'s tracks property', () => {
+				expect(() => midi.tracks = 'FAIL' ).to.throw(TypeError);
 			});
 		});
 
