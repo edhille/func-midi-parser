@@ -1,4 +1,3 @@
-/* eslint node: true */
 /* globals describe: true, before: true, beforeEach: true, afterEach: true, it: true, Uint8Array: true */
 'use strict';
 
@@ -370,7 +369,10 @@ describe('midiParser', () => {
 			});
 		});
 
-		beforeEach(() => midi = midiParser.parse(cloneArray(midiData)) );
+		beforeEach((done) =>  {
+			midi = midiParser.parse(cloneArray(midiData));
+			done();
+		});
 
 		it('should have 13 tracks', () => {
 			midi.tracks.length.should.equal(13);
